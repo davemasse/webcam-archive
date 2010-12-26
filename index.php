@@ -14,18 +14,26 @@
 			$blog_id = $args[0];
 			$username = $args[1];
 			$password = $args[2];
-			$image = $args[2];
+			$image = $args[3];
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
 			
-			return array(
-				count($args)
-			);
+			$upload_path = wp_upload_dir();
+			$upload_path = $upload_path['basedir'];
+			
+			// Generate filename for temp image
+			$filename = get_class() . time() . '.jpg';
+			
+			$file = fopen($upload_path . '/' . $filename, 'wb');
+			fwrite($file, base64_decode($image));
+			fclose($file);
+			
+			return true;
 		}
 		
 		function xmlrpc_methods($methods) {
-			$methods['webcamarchive.upload'] = 'xmlrpc_callback';
+			$methods['webcamarchive.upload'] = array('WebcamArchive', 'xmlrpc_callback');
 			return $methods;
 		}
 	}
