@@ -22,14 +22,14 @@
 				<?php foreach ($sizes as $size) : ?>
 					<tr>
 						<td><input type="checkbox" name="param[<?php echo $size->id; ?>][delete]" value="1" /></td>
-						<td><input type="text" name="param[<?php echo $size->id; ?>][width]" value="<?php echo $size->width; ?>" size="10" /></td>
-						<td><input type="text" name="param[<?php echo $size->id; ?>][height]" value="<?php echo $size->height; ?>" size="10" /></td>
+						<td align="center"><?php echo $size->width; ?></td>
+						<td align="center"><?php echo $size->height; ?></td>
 					</tr>
 				<?php endforeach; ?>
 				<tr>
 					<td>&nbsp;</td>
-					<td><input type="text" name="param[0][width]" id="width_0" size="10" /></td>
-					<td><input type="text" name="param[0][height]" id="height_0" size="10" /></td>
+					<td align="center"><input type="text" name="param[0][width]" id="width_0" size="10" /></td>
+					<td align="center"><input type="text" name="param[0][height]" id="height_0" size="10" /></td>
 				</tr>
 			</tbody>
 		</table>

@@ -69,17 +69,24 @@
 				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive (
-						id int(11) AUTO_INCREMENT,
+						id INT(11) AUTO_INCREMENT,
 						entry_date TIMESTAMP NOT NULL,
 						PRIMARY KEY (id)
 					);";
 				dbDelta($sql);
 				
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_size (
-						id int(11) NOT NULL AUTO_INCREMENT,
+						id INT(11) NOT NULL AUTO_INCREMENT,
 						width INT(11) NOT NULL,
 						height INT(11) NOT NULL,
 						deleted BIT DEFAULT 0 NOT NULL,
+						PRIMARY KEY (id)
+					);";
+				dbDelta($sql);
+				
+				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_meta (
+						id INT(11) NOT NULL AUTO_INCREMENT,
+						name VARCHAR(200) NOT NULL,
 						PRIMARY KEY (id)
 					);";
 				dbDelta($sql);
@@ -88,6 +95,14 @@
 						entry_id INT(11) NOT NULL,
 						size_id INT(11) NOT NULL,
 						PRIMARY KEY (entry_id, size_id)
+					);";
+				dbDelta($sql);
+				
+				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_meta_entry (
+						entry_id INT(11) NOT NULL,
+						meta_id INT(11) NOT NULL,
+						sort INT(11) NOT NULL,
+						PRIMARY KEY (entry_id, meta_id)
 					);";
 				dbDelta($sql);
 			}
@@ -106,6 +121,7 @@
 			if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				$params = $_POST['param'];
 				
+				// Save sizes
 				foreach ($params as $key => $val) {
 					if ($key == 0) {
 						if (preg_match('/^[1-9][0-9]+$/', $val['width']) == 1 && preg_match('/^[1-9][0-9]+$/', $val['height']) == 1) {
@@ -118,16 +134,41 @@
 							", $val['width'], $val['height']));
 						}
 					} elseif ($key > 0) {
+						if (isset($val['delete'])) {
+							$wpdb->query($wpdb->prepare("
+								UPDATE
+									" . $wpdb->prefix . "webcam_archive_size
+								SET
+									deleted = 1
+								WHERE
+									id = %s
+							", $key));
+						}
+					}
+				}
+				
+				$meta = $_POST['meta'];
+				
+				foreach ($meta as $key => $val) {
+					if ($key == 0) {
+						$wpdb->query($wpdb->prepare("
+							INSERT INTO
+								" . $wpdb->prefix . "webcam_archive_meta
+							(name, sort)
+							VALUES
+							('%s', (SELECT MAX(sort) FROM " . $wpdb->prefix . "webcam_archive_meta) + 1)
+						", $val['name']))
+					} else ($key > 0) {
 						$wpdb->query($wpdb->prepare("
 							UPDATE
-								" . $wpdb->prefix . "webcam_archive_size
+								" . $wpdb->prefix . "webcam_archive_meta
 							SET
-								width = '%s',
-								height = '%s',
-								deleted = %d
+								name = '%s',
+								sort = %s,
+								deleted = %s
 							WHERE
-								id = '%s'
-						", $val['width'], $val['height'], (isset($val['delete']) ? 1 : 0), $key));
+								id = %s
+						", $val['name'], ($val['deleted'] == '1' ? 1 : 0), $key))
 					}
 				}
 			}
@@ -144,6 +185,18 @@
 				ORDER BY
 					width ASC,
 					height ASC
+			");
+			
+			$meta = $wpdb->get_results("
+				SELECT
+					id,
+					name
+				FROM
+					" . $wpdb->prefix . "webcam_archive_meta
+				WHERE
+					deleted = 0
+				ORDER BY
+					name ASC
 			");
 			
 			include 'display_admin.php';
