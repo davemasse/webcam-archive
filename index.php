@@ -50,7 +50,7 @@
 	class WebcamArchiveAdmin {
 		const capability = 'manage_options';
 		const db_version_key = 'webcam_archive_version';
-		const db_version = 0.1;
+		const db_version = 0.4;
 		
 		function install() {
 			global $wpdb;
@@ -68,6 +68,7 @@
 				// Include supporting code since a database update is needed
 				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				
+				// Photo instances
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive (
 						id INT(11) AUTO_INCREMENT,
 						entry_date TIMESTAMP NOT NULL,
@@ -75,6 +76,10 @@
 					);";
 				dbDelta($sql);
 				
+				// Photo sizes
+				// These cannot be redefined since older photos may have already been
+				// created with these dimensions. Instead, a 'deleted' flag will be
+				// set and used to determine which sizes are available for new photos.
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_size (
 						id INT(11) NOT NULL AUTO_INCREMENT,
 						width INT(11) NOT NULL,
@@ -84,13 +89,17 @@
 					);";
 				dbDelta($sql);
 				
+				// Meta information
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_meta (
 						id INT(11) NOT NULL AUTO_INCREMENT,
 						name VARCHAR(200) NOT NULL,
+						sort INT(11) NOT NULL,
+						deleted BIT DEFAULT 0 NOT NULL,
 						PRIMARY KEY (id)
 					);";
 				dbDelta($sql);
 				
+				// Size<->entry mapping
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_size_entry (
 						entry_id INT(11) NOT NULL,
 						size_id INT(11) NOT NULL,
@@ -98,15 +107,16 @@
 					);";
 				dbDelta($sql);
 				
+				// Meta<->entry mapping
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_meta_entry (
 						entry_id INT(11) NOT NULL,
 						meta_id INT(11) NOT NULL,
-						sort INT(11) NOT NULL,
 						PRIMARY KEY (entry_id, meta_id)
 					);";
 				dbDelta($sql);
 			}
 			
+			// Update database schema version
 			update_option(self::db_version_key, self::db_version);
 		}
 		
@@ -121,18 +131,22 @@
 			if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 				$params = $_POST['param'];
 				
-				// Save sizes
+				// Save photo sizes
 				foreach ($params as $key => $val) {
+					// New photo size
 					if ($key == 0) {
-						if (preg_match('/^[1-9][0-9]+$/', $val['width']) == 1 && preg_match('/^[1-9][0-9]+$/', $val['height']) == 1) {
-							$wpdb->query($wpdb->prepare("
-								INSERT INTO
-									" . $wpdb->prefix . "webcam_archive_size
-								(width, height)
-								VALUES
-								('%s', '%s')
-							", $val['width'], $val['height']));
+						if (preg_match('/^[1-9][0-9]+$/', $val['width']) == 0 || preg_match('/^[1-9][0-9]+$/', $val['height']) == 0) {
+							continue;
 						}
+						
+						$wpdb->query($wpdb->prepare("
+							INSERT INTO
+								" . $wpdb->prefix . "webcam_archive_size
+							(width, height)
+							VALUES
+							('%s', '%s')
+						", $val['width'], $val['height']));
+					// Delete existing photo size
 					} elseif ($key > 0) {
 						if (isset($val['delete'])) {
 							$wpdb->query($wpdb->prepare("
@@ -147,32 +161,39 @@
 					}
 				}
 				
-				$meta = $_POST['meta'];
+				$metas = $_POST['meta'];
 				
-				foreach ($meta as $key => $val) {
+				// Save meta fields
+				foreach ($metas as $key => $val) {
+					// New meta field
 					if ($key == 0) {
+						if (strlen($val['name']) == 0) {
+							continue;
+						}
+						
 						$wpdb->query($wpdb->prepare("
 							INSERT INTO
 								" . $wpdb->prefix . "webcam_archive_meta
 							(name, sort)
-							VALUES
-							('%s', (SELECT MAX(sort) FROM " . $wpdb->prefix . "webcam_archive_meta) + 1)
-						", $val['name']))
-					} else ($key > 0) {
+							SELECT '%s', IFNULL(MAX(sort), 0) + 1 FROM " . $wpdb->prefix . "webcam_archive_meta WHERE deleted = 0
+						", substr($val['name'], 0, 200)));
+					// Update existing meta field
+					} elseif ($key > 0) {
 						$wpdb->query($wpdb->prepare("
 							UPDATE
 								" . $wpdb->prefix . "webcam_archive_meta
 							SET
 								name = '%s',
 								sort = %s,
-								deleted = %s
+								deleted = %d
 							WHERE
 								id = %s
-						", $val['name'], ($val['deleted'] == '1' ? 1 : 0), $key))
+						", $val['name'], $val['sort'], (isset($val['delete']) ? 1 : 0), $key));
 					}
 				}
 			}
 			
+			// Load all active photo sizes
 			$sizes = $wpdb->get_results("
 				SELECT
 					id,
@@ -187,15 +208,18 @@
 					height ASC
 			");
 			
-			$meta = $wpdb->get_results("
+			// Load all active meta fields
+			$metas = $wpdb->get_results("
 				SELECT
 					id,
-					name
+					name,
+					sort
 				FROM
 					" . $wpdb->prefix . "webcam_archive_meta
 				WHERE
 					deleted = 0
 				ORDER BY
+					sort ASC,
 					name ASC
 			");
 			
