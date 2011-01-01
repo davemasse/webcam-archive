@@ -43,15 +43,17 @@
 			");
 			$entry_id = $wpdb->insert_id;
 			
-			foreach ($meta as $key => $value) {
-				if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_meta WHERE id = %d", $key)) == 1) {
-					$wpdb->query($wpdb->prepare("
-						INSERT INTO
-							" . $wpdb->prefix . "webcam_archive_meta_entry
-						(entry_id, meta_id, value)
-						VALUES
-						(%d, %d, '%s')
-					", $entry_id, $key, $value));
+			if (is_array($meta)) {
+				foreach ($meta as $key => $value) {
+					if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_meta WHERE id = %d", $key)) == 1) {
+						$wpdb->query($wpdb->prepare("
+							INSERT INTO
+								" . $wpdb->prefix . "webcam_archive_meta_entry
+							(entry_id, meta_id, value)
+							VALUES
+							(%d, %d, '%s')
+						", $entry_id, $key, $value));
+					}
 				}
 			}
 			
