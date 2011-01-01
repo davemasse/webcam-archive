@@ -11,12 +11,15 @@
 	// Manage webcam-related XML-RPC requests
 	class WebcamArchive {
 		function xmlrpc_callback($args) {
+			global $wpdb;
+			
 			$wp_xmlrpc_server = new wp_xmlrpc_server;
 			
 			$blog_id = $args[0];
 			$username = $args[1];
 			$password = $args[2];
 			$image = $args[3];
+			$meta = $args[4];
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
@@ -31,6 +34,59 @@
 			fwrite($file, base64_decode($image));
 			fclose($file);
 			
+			$wpdb->query("
+				INSERT INTO
+					" . $wpdb->prefix . "webcam_archive
+				(entry_date)
+				VALUES
+				(NOW())
+			");
+			$entry_id = $wpdb->insert_id;
+			
+			foreach ($meta as $key => $value) {
+				if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_meta WHERE id = %d", $key)) == 1) {
+					$wpdb->query($wpdb->prepare("
+						INSERT INTO
+							" . $wpdb->prefix . "webcam_archive_meta_entry
+						(entry_id, meta_id, value)
+						VALUES
+						(%d, %d, '%s')
+					", $entry_id, $key, $value));
+				}
+			}
+			
+			// Load all active photo sizes
+			$sizes = $wpdb->get_results("
+				SELECT
+					id,
+					width,
+					height
+				FROM
+					" . $wpdb->prefix . "webcam_archive_size
+				WHERE
+					deleted = 0
+				ORDER BY
+					width ASC,
+					height ASC
+			");
+			
+			// Create directory structure
+			$output_dir = $upload_path . '/webcam/' . $entry_id . '/';
+			mkdir($output_dir, 0777, true);
+			
+			$image_obj = imagecreatefromjpeg($upload_path . '/' . $filename);
+			list($image_width, $image_height) = getimagesize($upload_path . '/' . $filename);
+			
+			// Iterate through sizes, creating resized images
+			foreach ($sizes as $size) {
+				$resized_obj = imagecreatetruecolor($size->width, $size->height);
+				imagecopyresized($resized_obj, $image_obj, 0, 0, 0, 0, $size->width, $size->height, $image_width, $image_height);
+				
+				// Output resized image
+				imagejpeg($resized_obj, $output_dir . $size->id . '.jpg');
+			}
+			
+			// Delete temp file
 			unlink($upload_path . '/' . $filename);
 			
 			return array(
@@ -50,7 +106,7 @@
 	class WebcamArchiveAdmin {
 		const capability = 'manage_options';
 		const db_version_key = 'webcam_archive_version';
-		const db_version = 0.4;
+		const db_version = 0.1;
 		
 		function install() {
 			global $wpdb;
@@ -111,6 +167,7 @@
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_meta_entry (
 						entry_id INT(11) NOT NULL,
 						meta_id INT(11) NOT NULL,
+						value TEXT NOT NULL,
 						PRIMARY KEY (entry_id, meta_id)
 					);";
 				dbDelta($sql);
@@ -228,7 +285,7 @@
 	}
 	
 	// Run install on every load in case the database needs to be updated (quick version check)
-	add_action('plugins_loaded', array('WebcamArchiveAdmin', 'install'));
+	add_action('admin_init', array('WebcamArchiveAdmin', 'install'));
 	
 	// Register admin menu
 	add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
