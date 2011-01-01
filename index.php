@@ -21,6 +21,8 @@
 			$image = $args[3];
 			$meta = $args[4];
 			
+			$timestamp = time();
+			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
 			
@@ -34,13 +36,13 @@
 			fwrite($file, base64_decode($image));
 			fclose($file);
 			
-			$wpdb->query("
+			$wpdb->query($wpdb->prepare("
 				INSERT INTO
 					" . $wpdb->prefix . "webcam_archive
 				(entry_date)
 				VALUES
-				(NOW())
-			");
+				(%s)
+			", $timestamp));
 			$entry_id = $wpdb->insert_id;
 			
 			if (is_array($meta)) {
@@ -72,17 +74,35 @@
 					height ASC
 			");
 			
-			// Create directory structure
-			$output_dir = $upload_path . '/webcam/' . $entry_id . '/';
+			// Create directory structure with intermediate directories, if necessary
+			$output_dir = $upload_path . '/webcam/' . date . $entry_id . '/';
 			mkdir($output_dir, 0777, true);
 			
+			// Create image object from uploaded image
 			$image_obj = imagecreatefromjpeg($upload_path . '/' . $filename);
+			
+			// Get image dimensions of uploaded image
 			list($image_width, $image_height) = getimagesize($upload_path . '/' . $filename);
 			
 			// Iterate through sizes, creating resized images
 			foreach ($sizes as $size) {
-				$resized_obj = imagecreatetruecolor($size->width, $size->height);
-				imagecopyresized($resized_obj, $image_obj, 0, 0, 0, 0, $size->width, $size->height, $image_width, $image_height);
+				// Set resized image width
+				if ($size->width == 0)
+					$resized_width = $image_width;
+				else
+					$resized_width = $size->width;
+				
+				// Set resized image height
+				if ($size->height == 0)
+					$resized_height = $image_height;
+				else
+					$resized_height = $size->height;
+				
+				// Generate placeholder for new image
+				$resized_obj = imagecreatetruecolor($resized_width, $resized_height);
+				
+				// Copy uploaded image to resized image object
+				imagecopyresized($resized_obj, $image_obj, 0, 0, 0, 0, $resized_width, $resized_height, $image_width, $image_height);
 				
 				// Output resized image
 				imagejpeg($resized_obj, $output_dir . $size->id . '.jpg');
@@ -194,7 +214,7 @@
 				foreach ($params as $key => $val) {
 					// New photo size
 					if ($key == 0) {
-						if (preg_match('/^[1-9][0-9]+$/', $val['width']) == 0 || preg_match('/^[1-9][0-9]+$/', $val['height']) == 0) {
+						if (preg_match('/^(0|[1-9][0-9]+)$/', $val['width']) == 0 || preg_match('/^(0|[1-9][0-9]+)$/', $val['height']) == 0) {
 							continue;
 						}
 						
@@ -207,16 +227,14 @@
 						", $val['width'], $val['height']));
 					// Delete existing photo size
 					} elseif ($key > 0) {
-						if (isset($val['delete'])) {
-							$wpdb->query($wpdb->prepare("
-								UPDATE
-									" . $wpdb->prefix . "webcam_archive_size
-								SET
-									deleted = 1
-								WHERE
-									id = %s
-							", $key));
-						}
+						$wpdb->query($wpdb->prepare("
+							UPDATE
+								" . $wpdb->prefix . "webcam_archive_size
+							SET
+								deleted = %d
+							WHERE
+								id = %s
+						", (isset($val['delete']) ? 1 : 0), $key));
 					}
 				}
 				

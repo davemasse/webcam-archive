@@ -22,8 +22,8 @@
 				<?php foreach ($sizes as $size) : ?>
 					<tr>
 						<td><input type="checkbox" name="param[<?php echo $size->id; ?>][delete]" value="1" /></td>
-						<td align="center"><?php echo $size->width; ?></td>
-						<td align="center"><?php echo $size->height; ?></td>
+						<td align="center"><?php echo ($size->width == 0 ? __('original') : $size->width); ?></td>
+						<td align="center"><?php echo ($size->height == 0 ? __('original') : $size->height); ?></td>
 					</tr>
 				<?php endforeach; ?>
 				<tr>
