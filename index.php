@@ -41,7 +41,7 @@
 					" . $wpdb->prefix . "webcam_archive
 				(entry_date)
 				VALUES
-				(%s)
+				(FROM_UNIXTIME(%s))
 			", $timestamp));
 			$entry_id = $wpdb->insert_id;
 			
@@ -75,7 +75,7 @@
 			");
 			
 			// Create directory structure with intermediate directories, if necessary
-			$output_dir = $upload_path . '/webcam/' . date . $entry_id . '/';
+			$output_dir = $upload_path . '/webcam/' . date('Y/m/d/') . $entry_id . '/';
 			mkdir($output_dir, 0777, true);
 			
 			// Create image object from uploaded image
@@ -106,6 +106,14 @@
 				
 				// Output resized image
 				imagejpeg($resized_obj, $output_dir . $size->id . '.jpg');
+				
+				$wpdb->query($wpdb->prepare("
+					INSERT INTO
+						" . $wpdb->prefix . "webcam_archive_size_entry
+					(entry_id, size_id)
+					VALUES
+					(%d, %d)
+				", $entry_id, $size->id));
 			}
 			
 			// Delete temp file
@@ -129,6 +137,7 @@
 		const capability = 'manage_options';
 		const db_version_key = 'webcam_archive_version';
 		const db_version = 0.1;
+		const shortcode_tag = 'webcam_archive';
 		
 		function install() {
 			global $wpdb;
@@ -302,6 +311,73 @@
 			
 			include 'display_admin.php';
 		}
+		
+		function handle_shortcode($attrs = array()) {
+			global $wpdb;
+			
+			$entry_date = $wpdb->get_var("
+				SELECT
+					DATE_FORMAT(wa.entry_date, '%Y%m%d')
+				FROM
+					" . $wpdb->prefix . "webcam_archive wa
+				ORDER BY
+					wa.entry_date DESC
+				LIMIT 1
+			");
+			
+			$sizes = $wpdb->get_results($wpdb->prepare("
+				SELECT
+					wa.id,
+					UNIX_TIMESTAMP(wa.entry_date) AS entry_date,
+					was.width,
+					was.height
+				FROM
+					" . $wpdb->prefix . "webcam_archive wa
+					INNER JOIN " . $wpdb->prefix . "webcam_archive_size_entry wase ON wa.id = wase.entry_id
+					INNER JOIN " . $wpdb->prefix . "webcam_archive_size was ON wase.size_id = was.id
+				WHERE
+					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
+			", $entry_date));
+			
+			$metas = $wpdb->get_results($wpdb->prepare("
+				SELECT
+					UNIX_TIMESTAMP(wa.entry_date) AS entry_date,
+					wam.name,
+					wame.value
+				FROM
+					" . $wpdb->prefix . "webcam_archive wa
+					INNER JOIN " . $wpdb->prefix . "webcam_archive_meta_entry wame ON wa.id = wame.entry_id
+					INNER JOIN " . $wpdb->prefix . "webcam_archive_meta wam ON wame.meta_id = wam.id
+				WHERE
+					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
+			", $entry_date));
+			
+			foreach ($sizes as $size) {
+				$size_array = array(
+					'width' => $size->width,
+					'height' => $size->height,
+				);
+				$entry_array[$size->entry_date]['sizes'][] = $size_array;
+			}
+			
+			unset($sizes);
+			
+			foreach ($metas as $meta) {
+				$meta_array = array(
+					'name' => $meta->name,
+					'value' => $meta->value,
+				);
+				$entry_array[$meta->entry_date]['metas'][] = $meta_array;
+			}
+			
+			unset($metas);
+			
+			ob_start();
+			
+			include 'display_frontend.php';
+			
+			return ob_get_clean();
+		}
 	}
 	
 	// Run install on every load in case the database needs to be updated (quick version check)
@@ -309,4 +385,7 @@
 	
 	// Register admin menu
 	add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
+	
+	// Shortcode to put menu in pages and posts
+	add_shortcode(WebcamArchiveAdmin::shortcode_tag, array('WebcamArchiveAdmin', 'handle_shortcode'));
 ?>
