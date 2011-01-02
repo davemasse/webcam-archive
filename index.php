@@ -138,6 +138,9 @@
 		const db_version_key = 'webcam_archive_version';
 		const db_version = 0.1;
 		const shortcode_tag = 'webcam_archive';
+		const help_text = <<<EOF
+			<p>TODO: Help text.</p>
+EOF;
 		
 		function install() {
 			global $wpdb;
@@ -210,7 +213,8 @@
 		
 		function admin_menu() {
 			add_menu_page(__('Webcam Archive'), __('Webcam Archive'), self::capability, __FILE__);
-			add_submenu_page(__FILE__, __('Settings'), __('Settings'), self::capability, __FILE__, array('WebcamArchiveAdmin', 'display_admin'));
+			$hook = add_submenu_page(__FILE__, __('Settings'), __('Settings'), self::capability, __FILE__, array('WebcamArchiveAdmin', 'display_admin'));
+			add_contextual_help($hook, self::help_text);
 		}
 		
 		function display_admin() {
