@@ -21,7 +21,7 @@
 			$image = $args[3];
 			$meta = $args[4];
 			
-			$timestamp = time();
+			$timestamp = current_time('timestamp');
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
@@ -75,7 +75,7 @@
 			");
 			
 			// Create directory structure with intermediate directories, if necessary
-			$output_dir = $upload_path . '/webcam/' . date('Y/m/d/') . $entry_id . '/';
+			$output_dir = $upload_path . '/webcam/' . date('Y/m/d/', current_time('timestamp')) . $timestamp . '/';
 			mkdir($output_dir, 0777, true);
 			
 			// Create image object from uploaded image
@@ -319,6 +319,11 @@ EOF;
 		function handle_shortcode($attrs = array()) {
 			global $wpdb;
 			
+			$gmt_offset = 0;#get_option('gmt_offset') * 3600;
+			
+			$upload_path = wp_upload_dir();
+			$upload_path = $upload_path['baseurl'];
+			
 			$entry_date = $wpdb->get_var("
 				SELECT
 					DATE_FORMAT(wa.entry_date, '%Y%m%d')
@@ -332,7 +337,8 @@ EOF;
 			$sizes = $wpdb->get_results($wpdb->prepare("
 				SELECT
 					wa.id,
-					UNIX_TIMESTAMP(wa.entry_date) AS entry_date,
+					(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
+					was.id,
 					was.width,
 					was.height
 				FROM
@@ -341,11 +347,14 @@ EOF;
 					INNER JOIN " . $wpdb->prefix . "webcam_archive_size was ON wase.size_id = was.id
 				WHERE
 					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
-			", $entry_date));
+				ORDER BY
+					was.width ASC,
+					was.height ASC
+			", $gmt_offset, $entry_date));
 			
 			$metas = $wpdb->get_results($wpdb->prepare("
 				SELECT
-					UNIX_TIMESTAMP(wa.entry_date) AS entry_date,
+					(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
 					wam.name,
 					wame.value
 				FROM
@@ -354,10 +363,11 @@ EOF;
 					INNER JOIN " . $wpdb->prefix . "webcam_archive_meta wam ON wame.meta_id = wam.id
 				WHERE
 					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
-			", $entry_date));
+			", $gmt_offset, $entry_date));
 			
 			foreach ($sizes as $size) {
 				$size_array = array(
+					'id' => $size->id,
 					'width' => $size->width,
 					'height' => $size->height,
 				);
