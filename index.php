@@ -89,13 +89,17 @@
 					continue;
 				
 				// Set resized image width
-				if ($size->width == 0)
+				if ($size->width == 0 && $size->height > 0)
+					$resized_width = ceil(($size->height / $image_height) * image_width);
+				elseif ($size->width == 0)
 					$resized_width = $image_width;
 				else
 					$resized_width = $size->width;
 				
 				// Set resized image height
-				if ($size->height == 0)
+				if ($size->height == 0 && $size->width > 0)
+					$resized_height = ceil(($size->width / $image_width) * $image_height);
+				elseif ($size->height == 0)
 					$resized_height = $image_height;
 				else
 					$resized_height = $size->height;
@@ -109,6 +113,8 @@
 				// Output resized image
 				imagejpeg($resized_obj, $output_dir . $size->id . '.jpg');
 				
+				imagedestroy($resized_obj);
+				
 				$wpdb->query($wpdb->prepare("
 					INSERT INTO
 						" . $wpdb->prefix . "webcam_archive_size_entry
@@ -120,6 +126,8 @@
 			
 			// Delete temp file
 			unlink($upload_path . '/' . $filename);
+			
+			imagedestroy($image_obj);
 			
 			return array(
 				'error' => '',
