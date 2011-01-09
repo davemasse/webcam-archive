@@ -138,7 +138,7 @@
 	class WebcamArchiveAdmin {
 		const capability = 'manage_options';
 		const db_version_key = 'webcam_archive_version';
-		const db_version = 0.3;
+		const db_version = 0.11;
 		const shortcode_tag = 'webcam_archive';
 		const help_text = <<<EOF
 			<p>TODO: Help text.</p>
@@ -176,6 +176,7 @@ EOF;
 						id INT(11) NOT NULL AUTO_INCREMENT,
 						width INT(11) NOT NULL,
 						height INT(11) NOT NULL,
+						permanent BIT DEFAULT 0 NOT NULL,
 						deleted BIT DEFAULT 0 NOT NULL,
 						PRIMARY KEY (id)
 					);";
@@ -210,6 +211,25 @@ EOF;
 				dbDelta($sql);
 			}
 			
+			$perm_size_count = $wpdb->get_var("
+				SELECT
+					COUNT(*)
+				FROM
+					" . $wpdb->prefix . "webcam_archive_size
+				WHERE
+					permanent = 1
+			");
+			if ($perm_size_count < 2) {
+				$wpdb->query("
+					INSERT INTO
+						" . $wpdb->prefix . "webcam_archive_size
+					(width, height, permanent)
+					VALUES
+					(100, 0, 1),
+					(400, 0, 1)
+				");
+			}
+			
 			// Update database schema version
 			update_option(self::db_version_key, self::db_version);
 		}
@@ -234,13 +254,16 @@ EOF;
 							continue;
 						}
 						
-						$wpdb->query($wpdb->prepare("
-							INSERT INTO
-								" . $wpdb->prefix . "webcam_archive_size
-							(width, height)
-							VALUES
-							('%s', '%s')
-						", $val['width'], $val['height']));
+						// Only insert a unique size
+						if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_size WHERE width = %d AND height = %d", $val['width'], $val['height'])) == 0) {
+							$wpdb->query($wpdb->prepare("
+								INSERT INTO
+									" . $wpdb->prefix . "webcam_archive_size
+								(width, height)
+								VALUES
+								('%s', '%s')
+							", $val['width'], $val['height']));
+						}
 					// Delete existing photo size
 					} elseif ($key > 0) {
 						$wpdb->query($wpdb->prepare("
@@ -250,6 +273,7 @@ EOF;
 								deleted = %d
 							WHERE
 								id = %s
+								AND permanent = 0
 						", (isset($val['delete']) ? 1 : 0), $key));
 					}
 				}
@@ -291,14 +315,15 @@ EOF;
 				SELECT
 					id,
 					width,
-					height
+					height,
+					permanent
 				FROM
 					" . $wpdb->prefix . "webcam_archive_size
 				WHERE
 					deleted = 0
-				ORDER BY
-					width ASC,
-					height ASC
+				ORDER BY	
+					IF (width = 0, 1000000, width) ASC,
+					IF (height = 0, 1000000, height) ASC
 			");
 			
 			// Load all active meta fields

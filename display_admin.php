@@ -21,7 +21,13 @@
 			<tbody>
 				<?php foreach ($sizes as $size) : ?>
 					<tr>
-						<td><input type="checkbox" name="param[<?php echo $size->id; ?>][delete]" value="1" /></td>
+						<td><?php
+							if ($size->permanent == false) {
+								?>
+									<input type="checkbox" name="param[<?php echo $size->id; ?>][delete]" value="1" />
+								<?php
+							}
+						?></td>
 						<td align="center"><?php
 							if ($size->width == 0 && $size->height == 0) {
 								echo __('original');
