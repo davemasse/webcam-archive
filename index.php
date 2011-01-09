@@ -211,22 +211,16 @@ EOF;
 				dbDelta($sql);
 			}
 			
-			$perm_size_count = $wpdb->get_var("
-				SELECT
-					COUNT(*)
-				FROM
-					" . $wpdb->prefix . "webcam_archive_size
-				WHERE
-					permanent = 1
-			");
-			if ($perm_size_count < 2) {
+			// Insert default sizes
+			if ($wpdb->get_var("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_size") == 0) {
 				$wpdb->query("
 					INSERT INTO
 						" . $wpdb->prefix . "webcam_archive_size
 					(width, height, permanent)
 					VALUES
 					(100, 0, 1),
-					(400, 0, 1)
+					(400, 0, 1),
+					(0, 0, 0)
 				");
 			}
 			
