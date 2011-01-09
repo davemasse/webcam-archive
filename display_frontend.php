@@ -6,8 +6,8 @@
 				
 				foreach ($entry['sizes'] as $size) {
 					?>
-						<img src="<?php echo $upload_path . '/webcam/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $size['id']; ?>.jpg" />
 						<br />
+						<img src="<?php echo $upload_path . '/webcam/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $size['id']; ?>.jpg" />
 					<?php
 				}
 			?>

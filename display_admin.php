@@ -22,8 +22,24 @@
 				<?php foreach ($sizes as $size) : ?>
 					<tr>
 						<td><input type="checkbox" name="param[<?php echo $size->id; ?>][delete]" value="1" /></td>
-						<td align="center"><?php echo ($size->width == 0 ? __('original') : $size->width); ?></td>
-						<td align="center"><?php echo ($size->height == 0 ? __('original') : $size->height); ?></td>
+						<td align="center"><?php
+							if ($size->width == 0 && $size->height == 0) {
+								echo __('original');
+							} elseif ($size->width == 0) {
+								echo __('scaled');
+							} else {
+								echo $size->width;
+							}
+						?></td>
+						<td align="center"><?php
+							if ($size->height == 0 && $size->width == 0) {
+								echo __('original');
+							} elseif ($size->height == 0) {
+								echo __('scaled');
+							} else {
+								echo $size->height;
+							}
+						?></td>
 					</tr>
 				<?php endforeach; ?>
 				<tr>
@@ -40,7 +56,7 @@
 			<thead>
 				<tr>
 					<th>Delete?</th>
-					<th width="50">ID</th>
+					<th width="100">Short Name</th>
 					<th>Name</th>
 					<th>Sort Order</th>
 				</tr>
@@ -49,7 +65,7 @@
 				<?php foreach ($metas as $meta) : ?>
 					<tr>
 						<td><input type="checkbox" name="meta[<?php echo $meta->id; ?>][delete]" value="1" /></td>
-						<td align="center"><?php echo $meta->id; ?></td>
+						<td style="padding: 0 10px; text-align: right; white-space: nowrap;"><?php echo $meta->slug; ?></td>
 						<td align="center"><input type="text" name="meta[<?php echo $meta->id; ?>][name]" value="<?php echo htmlentities($meta->name); ?>" size="30" /></td>
 						<td align="center"><input type="text" name="meta[<?php echo $meta->id; ?>][sort]" value="<?php echo $meta->sort; ?>" size="10" /></td>
 					</tr>

@@ -47,14 +47,13 @@
 			
 			if (is_array($meta)) {
 				foreach ($meta as $key => $value) {
-					if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_meta WHERE id = %d", $key)) == 1) {
+					if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_meta WHERE slug = '%s'", $key)) == 1) {
 						$wpdb->query($wpdb->prepare("
 							INSERT INTO
 								" . $wpdb->prefix . "webcam_archive_meta_entry
 							(entry_id, meta_id, value)
-							VALUES
-							(%d, %d, '%s')
-						", $entry_id, $key, $value));
+							SELECT %d, id, '%s' FROM " . $wpdb->prefix . "webcam_archive_meta WHERE slug = '%s'
+						", $entry_id, $value, $key));
 					}
 				}
 			}
@@ -86,6 +85,9 @@
 			
 			// Iterate through sizes, creating resized images
 			foreach ($sizes as $size) {
+				if ($size->width > $image_width || $size->height > $image_height)
+					continue;
+				
 				// Set resized image width
 				if ($size->width == 0)
 					$resized_width = $image_width;
@@ -136,7 +138,7 @@
 	class WebcamArchiveAdmin {
 		const capability = 'manage_options';
 		const db_version_key = 'webcam_archive_version';
-		const db_version = 0.1;
+		const db_version = 0.3;
 		const shortcode_tag = 'webcam_archive';
 		const help_text = <<<EOF
 			<p>TODO: Help text.</p>
@@ -183,6 +185,7 @@ EOF;
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_meta (
 						id INT(11) NOT NULL AUTO_INCREMENT,
 						name VARCHAR(200) NOT NULL,
+						slug VARCHAR(200) NOT NULL,
 						sort INT(11) NOT NULL,
 						deleted BIT DEFAULT 0 NOT NULL,
 						PRIMARY KEY (id)
@@ -264,9 +267,9 @@ EOF;
 						$wpdb->query($wpdb->prepare("
 							INSERT INTO
 								" . $wpdb->prefix . "webcam_archive_meta
-							(name, sort)
+							(name, slug, sort)
 							SELECT '%s', IFNULL(MAX(sort), 0) + 1 FROM " . $wpdb->prefix . "webcam_archive_meta WHERE deleted = 0
-						", substr($val['name'], 0, 200)));
+						", substr($val['name'], 0, 200), self::generate_slug(substr($val['name'], 0, 200))));
 					// Update existing meta field
 					} elseif ($key > 0) {
 						$wpdb->query($wpdb->prepare("
@@ -303,6 +306,7 @@ EOF;
 				SELECT
 					id,
 					name,
+					slug,
 					sort
 				FROM
 					" . $wpdb->prefix . "webcam_archive_meta
@@ -348,8 +352,9 @@ EOF;
 				WHERE
 					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
 				ORDER BY
-					was.width ASC,
-					was.height ASC
+					entry_date ASC,
+					IF (was.width = 0, 1000000, was.width) ASC,
+					IF (was.height = 0, 1000000, was.height) ASC
 			", $gmt_offset, $entry_date));
 			
 			$metas = $wpdb->get_results($wpdb->prepare("
@@ -363,6 +368,8 @@ EOF;
 					INNER JOIN " . $wpdb->prefix . "webcam_archive_meta wam ON wame.meta_id = wam.id
 				WHERE
 					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
+				ORDER BY
+					entry_date ASC
 			", $gmt_offset, $entry_date));
 			
 			foreach ($sizes as $size) {
@@ -391,6 +398,36 @@ EOF;
 			include 'display_frontend.php';
 			
 			return ob_get_clean();
+		}
+		
+		function generate_slug($name, $id=0) {
+			global $wpdb;
+			
+			// Clean up name for use as a slug
+			$slug = $name;
+			$slug = strtolower($slug);
+			$slug = str_replace(' ', '-', $slug);
+			$slug = preg_replace('/[^a-z0-9\-]/', '', $slug);
+			
+			while (true) {
+				$slug_count = $wpdb->get_var($wpdb->prepare("
+					SELECT
+						COUNT(*)
+					FROM
+						" . $wpdb->prefix . "webcam_archive_meta
+					WHERE
+						slug = '%s'
+						" . ($id > 0 ? "AND id != %s" : "#%s") . "
+				", $slug . (isset($counter) ? '-' . $counter : ''), $id));
+				
+				if ($slug_count == 0) {
+					return $slug;
+				} elseif (!isset($counter)) {
+					$counter = 1;
+				} else {
+					$counter++;
+				}
+			}
 		}
 	}
 	
