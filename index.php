@@ -8,6 +8,10 @@
 	 * Author URI: http://www.rudemoose.com/
 	 */
 	
+	// Disable direct file access
+	if ($_SERVER['SCRIPT_FILENAME'] == __FILE__)
+		die();
+	
 	// Manage webcam-related XML-RPC requests
 	class WebcamArchive {
 		const upload_dir = 'webcam';
@@ -146,17 +150,28 @@
 	add_filter('xmlrpc_methods', array('WebcamArchive', 'xmlrpc_methods'));
 	
 	class WebcamArchiveAdmin {
+		// Permission required in order to access admin pages
 		const capability = 'manage_options';
+		// Key for storing database schema version
 		const db_version_key = 'webcam_archive_version';
+		// Current version (bumped on updates)
 		const db_version = 0.11;
+		// URL querystring variable that the requested image name will be put into
+		const filename_key = 'webcam_archive_filename';
+		// Used for bordering rewrites in the root .htaccess file
 		const marker_key = 'WebcamArchive';
+		// Config name to store requirement for user login to view content
 		const require_login = 'webcam_archive_require_login';
+		// Shortcode used in pages and posts to display webcam front end
 		const shortcode_tag = 'webcam_archive';
+		// Directory name inside of WordPress uploads directory where images are stored
 		const upload_dir = 'webcam';
+		// Admin help text
 		const help_text = <<<EOF
 			<p>TODO: Help text.</p>
 EOF;
 		
+		// Set up plugin requirements
 		function install() {
 			global $wpdb;
 			
@@ -241,12 +256,14 @@ EOF;
 			update_option(self::db_version_key, self::db_version);
 		}
 		
+		// Link the admin pages from the menu
 		function admin_menu() {
 			add_menu_page(__('Webcam Archive'), __('Webcam Archive'), self::capability, __FILE__);
 			$hook = add_submenu_page(__FILE__, __('Settings'), __('Settings'), self::capability, __FILE__, array('WebcamArchiveAdmin', 'display_admin'));
 			add_contextual_help($hook, self::help_text);
 		}
 		
+		// Display the WordPress admin pages
 		function display_admin() {
 			global $wpdb;
 			
@@ -330,7 +347,7 @@ EOF;
 						'RewriteEngine On',
 						'RewriteBase /',
 						'RewriteCond %{REQUEST_URI} ^/?' . $upload_dir . '/' . self::upload_dir . '/',
-						'RewriteRule (.*) index.php [L]',
+						'RewriteRule (.*) index.php?' . self::filename_key . '=$1 [L]',
 						'</IfModule>'
 					);
 					
@@ -380,7 +397,12 @@ EOF;
 			include 'display_admin.php';
 		}
 		
+		// Display plugin output on the front end
 		function handle_shortcode($attrs = array()) {
+			// Return nothing if login is required and user isn't logged in
+			if (get_option(self::require_login) && !is_user_logged_in())
+				return;
+			
 			global $wpdb;
 			
 			$gmt_offset = 0;#get_option('gmt_offset') * 3600;
@@ -460,6 +482,31 @@ EOF;
 			return ob_get_clean();
 		}
 		
+		// Allow access to files if login required and user is logged in
+		function template_redirect() {
+			global $wp_query;
+			
+			if (get_option(self::require_login) && is_user_logged_in()) {
+				if (isset($_GET[self::filename_key])) {
+					$image = $_GET[self::filename_key];
+					
+					if (file_exists(ABSPATH . $image)) {
+						header('Content-Disposition: inline; filename=' . basename($image) . ';');
+						header('Content-Type: image/jpeg');
+						header('Content-Transfer-Encoding: binary');
+						header('Content-Length: ' . filesize(ABSPATH . $image));
+						readfile(ABSPATH . $image);
+						
+						status_header(200);
+						$wp_query->is_404 = false;
+						
+						die();
+					}
+				}
+			}
+		}
+		
+		// Generate a slug name for meta values
 		function generate_slug($name, $id=0) {
 			global $wpdb;
 			
@@ -496,6 +543,9 @@ EOF;
 	
 	// Register admin menu
 	add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
+	
+	// Handle image redirect, if necessary
+	add_action('template_redirect', array('WebcamArchiveAdmin', 'template_redirect'));
 	
 	// Shortcode to put menu in pages and posts
 	add_shortcode(WebcamArchiveAdmin::shortcode_tag, array('WebcamArchiveAdmin', 'handle_shortcode'));
