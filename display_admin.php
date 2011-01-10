@@ -85,6 +85,10 @@
 			</tbody>
 		</table>
 		
+		<h3>Require login?</h3>
+		
+		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> Require login in order to view webcam pages and images?</label></p>
+		
 		<p><input type="submit" value="Save" /></p>
 	</form>
 </div>

@@ -10,6 +10,8 @@
 	
 	// Manage webcam-related XML-RPC requests
 	class WebcamArchive {
+		const upload_dir = 'webcam';
+		
 		function xmlrpc_callback($args) {
 			global $wpdb;
 			
@@ -74,7 +76,7 @@
 			");
 			
 			// Create directory structure with intermediate directories, if necessary
-			$output_dir = $upload_path . '/webcam/' . date('Y/m/d/', current_time('timestamp')) . $timestamp . '/';
+			$output_dir = $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', current_time('timestamp')) . $timestamp . '/';
 			mkdir($output_dir, 0777, true);
 			
 			// Create image object from uploaded image
@@ -147,7 +149,10 @@
 		const capability = 'manage_options';
 		const db_version_key = 'webcam_archive_version';
 		const db_version = 0.11;
+		const marker_key = 'WebcamArchive';
+		const require_login = 'webcam_archive_require_login';
 		const shortcode_tag = 'webcam_archive';
+		const upload_dir = 'webcam';
 		const help_text = <<<EOF
 			<p>TODO: Help text.</p>
 EOF;
@@ -310,6 +315,32 @@ EOF;
 						", $val['name'], $val['sort'], (isset($val['delete']) ? 1 : 0), $key));
 					}
 				}
+				
+				$line_count = count(extract_from_markers(ABSPATH . '.htaccess', self::marker_key));
+				
+				if (isset($_POST['require_login'])) {
+					update_option(self::require_login, true);
+					
+					$upload_dir = wp_upload_dir();
+					$upload_dir = $upload_dir['basedir'];
+					$upload_dir = str_replace(ABSPATH, '', $upload_dir);
+					
+					$rewrite_array = array(
+						'<IfModule mod_rewrite.c>',
+						'RewriteEngine On',
+						'RewriteBase /',
+						'RewriteCond %{REQUEST_URI} ^/?' . $upload_dir . '/' . self::upload_dir . '/',
+						'RewriteRule (.*) index.php [L]',
+						'</IfModule>'
+					);
+					
+					insert_with_markers(ABSPATH . '.htaccess', self::marker_key, $rewrite_array);
+				} elseif ($line_count > 0) {
+					update_option(self::require_login, false);
+					
+					// Remove webcam rewrite rules
+					insert_with_markers(ABSPATH . '.htaccess', self::marker_key, array());
+				}
 			}
 			
 			// Load all active photo sizes
@@ -343,6 +374,8 @@ EOF;
 					sort ASC,
 					name ASC
 			");
+			
+			$require_login = get_option(self::require_login, false);
 			
 			include 'display_admin.php';
 		}
