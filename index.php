@@ -166,6 +166,8 @@
 		const shortcode_tag = 'webcam_archive';
 		// Directory name inside of WordPress uploads directory where images are stored
 		const upload_dir = 'webcam';
+		// Config name to store whether plugin's own CSS should be used
+		const use_css = 'webcam_archive_use_css';
 		// Admin help text
 		const help_text = <<<EOF
 			<p>TODO: Help text.</p>
@@ -252,6 +254,12 @@ EOF;
 				");
 			}
 			
+			// Add default value for whether the plugin should require a login
+			add_option(self::require_login, false);
+			
+			// Add default value for whether the plugin should use its own CSS
+			add_option(self::use_css, true);
+			
 			// Update database schema version
 			update_option(self::db_version_key, self::db_version);
 		}
@@ -333,8 +341,6 @@ EOF;
 					}
 				}
 				
-				$line_count = count(extract_from_markers(ABSPATH . '.htaccess', self::marker_key));
-				
 				if (isset($_POST['require_login'])) {
 					update_option(self::require_login, true);
 					
@@ -352,11 +358,18 @@ EOF;
 					);
 					
 					insert_with_markers(ABSPATH . '.htaccess', self::marker_key, $rewrite_array);
-				} elseif ($line_count > 0) {
+				} elseif (count(extract_from_markers(ABSPATH . '.htaccess', self::marker_key)) > 0) {
 					update_option(self::require_login, false);
 					
 					// Remove webcam rewrite rules
 					insert_with_markers(ABSPATH . '.htaccess', self::marker_key, array());
+				}
+				
+				// Update CSS option
+				if (isset($_POST['use_css'])) {
+					update_option(self::use_css, true);
+				} else {
+					update_option(self::use_css, false);
 				}
 			}
 			
@@ -394,7 +407,29 @@ EOF;
 			
 			$require_login = get_option(self::require_login, false);
 			
+			$use_css = get_option(self::use_css, false);
+			
 			include 'display_admin.php';
+		}
+		
+		// Load header text
+		function init() {
+			$upload_dir = wp_upload_dir();
+			$upload_dir = $upload_dir['baseurl'];
+			
+			$plugin_path = '/' . str_replace(ABSPATH, '', dirname(__FILE__));
+			
+			wp_register_script('tooltip.dynamic.min.js', $plugin_path . '/js/tooltip.dynamic.min.js', array('jquery'));
+			wp_register_script('webcam_archive.js', $plugin_path . '/js/webcam_archive.js', array('tooltip.dynamic.min.js'));
+			
+			wp_enqueue_script('tooltip.dynamic.min.js');
+			wp_enqueue_script('webcam_archive.js');
+			
+			if (get_option(self::use_css) == true) {
+				wp_register_style('webcam_archive.css', $plugin_path . '/css/webcam_archive.css');
+				
+				wp_enqueue_style('webcam_archive.css');
+			}
 		}
 		
 		// Display plugin output on the front end
@@ -433,6 +468,7 @@ EOF;
 					INNER JOIN " . $wpdb->prefix . "webcam_archive_size was ON wase.size_id = was.id
 				WHERE
 					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
+					AND was.id = (SELECT id FROM " . $wpdb->prefix . "webcam_archive_size ORDER BY IF (width = 0, 1000000, width) ASC LIMIT 1)
 				ORDER BY
 					entry_date ASC,
 					IF (was.width = 0, 1000000, was.width) ASC,
@@ -487,6 +523,7 @@ EOF;
 			global $wp_query;
 			
 			if (get_option(self::require_login) && is_user_logged_in()) {
+			//if (true) {
 				if (isset($_GET[self::filename_key])) {
 					$image = $_GET[self::filename_key];
 					
@@ -497,8 +534,8 @@ EOF;
 						header('Content-Length: ' . filesize(ABSPATH . $image));
 						readfile(ABSPATH . $image);
 						
-						status_header(200);
 						$wp_query->is_404 = false;
+						status_header(200);
 						
 						die();
 					}
@@ -546,6 +583,9 @@ EOF;
 	
 	// Handle image redirect, if necessary
 	add_action('template_redirect', array('WebcamArchiveAdmin', 'template_redirect'));
+	
+	// Initialize JavaScript
+	add_action('init', array('WebcamArchiveAdmin', 'init'));
 	
 	// Shortcode to put menu in pages and posts
 	add_shortcode(WebcamArchiveAdmin::shortcode_tag, array('WebcamArchiveAdmin', 'handle_shortcode'));

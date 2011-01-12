@@ -89,6 +89,8 @@
 		
 		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> Require login in order to view webcam pages and images?</label></p>
 		
+		<p><label for="use_css"><input type="checkbox" name="use_css" id="use_css" value="1" <?php echo ($use_css ? 'checked="checked"' : ''); ?> /> Use the CSS provided with this plugin?</label></p>
+		
 		<p><input type="submit" value="Save" /></p>
 	</form>
 </div>
