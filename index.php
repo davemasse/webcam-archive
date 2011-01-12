@@ -250,7 +250,8 @@ EOF;
 					VALUES
 					(100, 0, 1),
 					(400, 0, 1),
-					(0, 0, 0)
+					(800, 0, 1),
+					(0, 0, 1)
 				");
 			}
 			
@@ -419,12 +420,20 @@ EOF;
 			
 			$plugin_path = '/' . str_replace(ABSPATH, '', dirname(__FILE__));
 			
+			// Register JavaScript
 			wp_register_script('tooltip.dynamic.min.js', $plugin_path . '/js/tooltip.dynamic.min.js', array('jquery'));
+			wp_register_script('jquery.lightbox.min.js', $plugin_path . '/js/jquery-lightbox/js/jquery.lightbox-0.5.min.js', array('jquery'));
 			wp_register_script('webcam_archive.js', $plugin_path . '/js/webcam_archive.js', array('tooltip.dynamic.min.js'));
 			
+			// Enqueue JavaScript
 			wp_enqueue_script('tooltip.dynamic.min.js');
+			wp_enqueue_script('jquery.lightbox.min.js');
 			wp_enqueue_script('webcam_archive.js');
 			
+			wp_register_style('jquery.lightbox.css', $plugin_path . '/js/jquery-lightbox/css/jquery.lightbox-0.5.css');
+			wp_enqueue_style('jquery.lightbox.css');
+			
+			// Add plugin CSS, if requested
 			if (get_option(self::use_css) == true) {
 				wp_register_style('webcam_archive.css', $plugin_path . '/css/webcam_archive.css');
 				
@@ -440,7 +449,7 @@ EOF;
 			
 			global $wpdb;
 			
-			$gmt_offset = 0;#get_option('gmt_offset') * 3600;
+			$gmt_offset = 0;
 			
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
