@@ -6,8 +6,9 @@ jQuery(function() {
 	
 	// Add tooltip to thumbnail image
 	jQuery('#webcam_archive .thumb').tooltip({
-		offset: [-6, 0],
-		delay: 100
+		offset: [0, 0],
+		delay: 100,
+		position: 'bottom center'
 	});
 	
 	// Add lightbox to display larger image
