@@ -325,8 +325,8 @@ EOF;
 							INSERT INTO
 								" . $wpdb->prefix . "webcam_archive_meta
 							(name, slug, sort)
-							SELECT '%s', IFNULL(MAX(sort), 0) + 1 FROM " . $wpdb->prefix . "webcam_archive_meta WHERE deleted = 0
-						", substr($val['name'], 0, 200), self::generate_slug(substr($val['name'], 0, 200))));
+							SELECT '%s', '%s', IFNULL(MAX(sort), 0) + 1 FROM " . $wpdb->prefix . "webcam_archive_meta WHERE deleted = 0
+						", substr($val['name'], 0, 200), self::generate_slug(substr($val['name'], 0, 200)), $val['sort']));
 					// Update existing meta field
 					} elseif ($key > 0) {
 						$wpdb->query($wpdb->prepare("
