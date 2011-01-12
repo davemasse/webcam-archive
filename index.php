@@ -468,7 +468,7 @@ EOF;
 					INNER JOIN " . $wpdb->prefix . "webcam_archive_size was ON wase.size_id = was.id
 				WHERE
 					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
-					AND was.id = (SELECT id FROM " . $wpdb->prefix . "webcam_archive_size ORDER BY IF (width = 0, 1000000, width) ASC LIMIT 1)
+					AND was.id IN (SELECT id FROM " . $wpdb->prefix . "webcam_archive_size WHERE permanent = 1 ORDER BY IF (width = 0, 1000000, width) ASC)
 				ORDER BY
 					entry_date ASC,
 					IF (was.width = 0, 1000000, was.width) ASC,
