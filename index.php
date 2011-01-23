@@ -454,71 +454,84 @@ EOF;
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
 			
-			$entry_date = $wpdb->get_var("
-				SELECT
-					DATE_FORMAT(wa.entry_date, '%Y%m%d')
-				FROM
-					" . $wpdb->prefix . "webcam_archive wa
-				ORDER BY
-					wa.entry_date DESC
-				LIMIT 1
-			");
-			
-			$sizes = $wpdb->get_results($wpdb->prepare("
-				SELECT
-					wa.id,
-					(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
-					was.id,
-					was.width,
-					was.height
-				FROM
-					" . $wpdb->prefix . "webcam_archive wa
-					INNER JOIN " . $wpdb->prefix . "webcam_archive_size_entry wase ON wa.id = wase.entry_id
-					INNER JOIN " . $wpdb->prefix . "webcam_archive_size was ON wase.size_id = was.id
-				WHERE
-					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
-					AND was.id IN (SELECT id FROM " . $wpdb->prefix . "webcam_archive_size WHERE permanent = 1 ORDER BY IF (width = 0, 1000000, width) ASC)
-				ORDER BY
-					entry_date ASC,
-					IF (was.width = 0, 1000000, was.width) ASC,
-					IF (was.height = 0, 1000000, was.height) ASC
-			", $gmt_offset, $entry_date));
-			
-			$metas = $wpdb->get_results($wpdb->prepare("
-				SELECT
-					(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
-					wam.name,
-					wame.value
-				FROM
-					" . $wpdb->prefix . "webcam_archive wa
-					INNER JOIN " . $wpdb->prefix . "webcam_archive_meta_entry wame ON wa.id = wame.entry_id
-					INNER JOIN " . $wpdb->prefix . "webcam_archive_meta wam ON wame.meta_id = wam.id
-				WHERE
-					DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
-				ORDER BY
-					entry_date ASC
-			", $gmt_offset, $entry_date));
-			
-			foreach ($sizes as $size) {
-				$size_array = array(
-					'id' => $size->id,
-					'width' => $size->width,
-					'height' => $size->height,
-				);
-				$entry_array[$size->entry_date]['sizes'][] = $size_array;
+			if (isset($_GET['date'])) {
+				$entry_date = $wpdb->get_var($wpdb->prepare("
+					SELECT
+						DATE_FORMAT(entry_date, '%Y%m%d')
+					FROM
+						" . $wpdb->prefix . "webcam_archive
+					WHERE
+						STR_TO_DATE(entry_date, '%Y-%c-%e') = STR_TO_DATE('%s', '%Y-%c-%e')
+				", $_GET['date']));
+			} else {
+				$entry_date = $wpdb->get_var("
+					SELECT
+						DATE_FORMAT(entry_date, '%Y%m%d')
+					FROM
+						" . $wpdb->prefix . "webcam_archive
+					ORDER BY
+						entry_date DESC
+					LIMIT 1
+				");
 			}
 			
-			unset($sizes);
-			
-			foreach ($metas as $meta) {
-				$meta_array = array(
-					'name' => $meta->name,
-					'value' => $meta->value,
-				);
-				$entry_array[$meta->entry_date]['metas'][] = $meta_array;
+			if ($entry_date != null) {
+				$sizes = $wpdb->get_results($wpdb->prepare("
+					SELECT
+						wa.id,
+						(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
+						was.id,
+						was.width,
+						was.height
+					FROM
+						" . $wpdb->prefix . "webcam_archive wa
+						INNER JOIN " . $wpdb->prefix . "webcam_archive_size_entry wase ON wa.id = wase.entry_id
+						INNER JOIN " . $wpdb->prefix . "webcam_archive_size was ON wase.size_id = was.id
+					WHERE
+						DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
+						AND was.id IN (SELECT id FROM " . $wpdb->prefix . "webcam_archive_size WHERE permanent = 1 ORDER BY IF (width = 0, 1000000, width) ASC)
+					ORDER BY
+						entry_date ASC,
+						IF (was.width = 0, 1000000, was.width) ASC,
+						IF (was.height = 0, 1000000, was.height) ASC
+				", $gmt_offset, $entry_date));
+				
+				$metas = $wpdb->get_results($wpdb->prepare("
+					SELECT
+						(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
+						wam.name,
+						wame.value
+					FROM
+						" . $wpdb->prefix . "webcam_archive wa
+						INNER JOIN " . $wpdb->prefix . "webcam_archive_meta_entry wame ON wa.id = wame.entry_id
+						INNER JOIN " . $wpdb->prefix . "webcam_archive_meta wam ON wame.meta_id = wam.id
+					WHERE
+						DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
+					ORDER BY
+						entry_date ASC
+				", $gmt_offset, $entry_date));
+				
+				foreach ($sizes as $size) {
+					$size_array = array(
+						'id' => $size->id,
+						'width' => $size->width,
+						'height' => $size->height,
+					);
+					$entry_array[$size->entry_date]['sizes'][] = $size_array;
+				}
+				
+				unset($sizes);
+				
+				foreach ($metas as $meta) {
+					$meta_array = array(
+						'name' => $meta->name,
+						'value' => $meta->value,
+					);
+					$entry_array[$meta->entry_date]['metas'][] = $meta_array;
+				}
+				
+				unset($metas);
 			}
-			
-			unset($metas);
 			
 			ob_start();
 			
@@ -532,7 +545,6 @@ EOF;
 			global $wp_query;
 			
 			if (get_option(self::require_login) && is_user_logged_in()) {
-			//if (true) {
 				if (isset($_GET[self::filename_key])) {
 					$image = $_GET[self::filename_key];
 					
