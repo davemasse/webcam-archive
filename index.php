@@ -453,11 +453,11 @@
 			if (isset($_GET['date'])) {
 				$entry_date = $wpdb->get_var($wpdb->prepare("
 					SELECT
-						DATE_FORMAT(entry_date, '%Y%m%d')
+						DATE_FORMAT(entry_date, '%%Y%%m%%d')
 					FROM
 						" . $wpdb->prefix . "webcam_archive
 					WHERE
-						STR_TO_DATE(entry_date, '%Y-%c-%e') = STR_TO_DATE('%s', '%Y-%c-%e')
+						STR_TO_DATE(entry_date, '%%Y-%%c-%%e') = STR_TO_DATE('%s', '%%Y-%%c-%%e')
 				", $_GET['date']));
 			} else {
 				$entry_date = $wpdb->get_var("
