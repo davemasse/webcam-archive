@@ -529,6 +529,31 @@
 				unset($metas);
 			}
 			
+			// Get previous day
+			$prev_date = $wpdb->get_var($wpdb->prepare("
+				SELECT
+					(UNIX_TIMESTAMP(entry_date) + %d) AS entry_date
+				FROM
+					" . $wpdb->prefix . "webcam_archive
+				WHERE
+					STR_TO_DATE(entry_date, '%%Y-%%c-%%e') < STR_TO_DATE('%s', '%%Y%%m%%d')
+				ORDER BY
+					entry_date DESC
+				LIMIT 1
+			", $gmt_offset, $entry_date));
+			
+			$next_date = $wpdb->get_var($wpdb->prepare("
+				SELECT
+					(UNIX_TIMESTAMP(entry_date) + %d) AS entry_date
+				FROM
+					" . $wpdb->prefix . "webcam_archive
+				WHERE
+					STR_TO_DATE(entry_date, '%%Y-%%c-%%e') > STR_TO_DATE('%s', '%%Y%%m%%d')
+				ORDER BY
+					entry_date ASC
+				LIMIT 1
+			", $gmt_offset, $entry_date));
+			
 			ob_start();
 			
 			include 'display_frontend.php';

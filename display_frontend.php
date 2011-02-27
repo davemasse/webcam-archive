@@ -9,6 +9,17 @@
 		<p><?php _e('No webcam photos could be found for the specified date.'); ?></p>
 	<?php else : ?>
 		<h2><?php echo date('F j, Y', key($entry_array)); ?></h2>
+		
+		<div class="nav">
+			<?php if ($next_date) : ?>
+				<div class="next"><a href="?date=<?php echo date('Y-m-d', $next_date); ?>">View <?php echo date('n/j/Y', $next_date); ?> &raquo;</a></div>
+			<?php endif; ?>
+			<?php if ($prev_date) : ?>
+				<div class="prev"><a href="?date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; View <?php echo date('n/j/Y', $prev_date); ?></a></div>
+			<?php endif; ?>
+			<div class="clear"><!-- --></div>
+		</div>
+		
 		<?php foreach ($entry_array as $entry_date => $entry) : ?>
 			<div class="image">
 				<?php
@@ -16,7 +27,7 @@
 						if ($key == 0) {
 							?>
 								<div class="thumb">
-									<a href="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $entry['sizes'][2]['id']; ?>.jpg" data-title="<?php echo date('n/j/Y \a\t g:i a', $entry_date); ?><br /><?php foreach ($entry['metas'] as $meta) : ?><?php echo $meta['name']; ?>: <?php echo $meta['value']; ?><br /><?php endforeach; ?>"><img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $size['id']; ?>.jpg" /></a><br />
+									<a href="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $entry['sizes'][2]['id']; ?>.jpg" data-title="<?php echo date('n/j/Y \a\t g:i a', $entry_date); ?><br /><?php foreach ($entry['metas'] as $meta) : ?><?php echo $meta['name']; ?>: <?php echo $meta['value']; ?><br /><?php endforeach; ?>"><img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $size['id']; ?>.jpg" width="<?php echo $size['width']; ?>" /></a><br />
 									<?php echo date('g:i a', $entry_date); ?>
 								</div>
 							<?php

@@ -25,3 +25,15 @@
 #webcam_archive .tooltip .meta {
 	text-align: center;
 }
+#webcam_archive .nav {
+	margin: 1em 0;
+}
+#webcam_archive .next {
+	float: right;
+}
+#webcam_archive .prev {
+	float: left;
+}
+#webcam_archive .clear {
+	clear: both;
+}
