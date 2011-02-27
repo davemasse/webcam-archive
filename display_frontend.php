@@ -12,10 +12,10 @@
 		
 		<div class="nav">
 			<?php if ($next_date) : ?>
-				<div class="next"><a href="?date=<?php echo date('Y-m-d', $next_date); ?>">View <?php echo date('n/j/Y', $next_date); ?> &raquo;</a></div>
+				<div class="next"><a href="?date=<?php echo date('Y-m-d', $next_date); ?>"><?php _e('View'); ?> <?php echo date('F j, Y', $next_date); ?> &raquo;</a></div>
 			<?php endif; ?>
 			<?php if ($prev_date) : ?>
-				<div class="prev"><a href="?date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; View <?php echo date('n/j/Y', $prev_date); ?></a></div>
+				<div class="prev"><a href="?date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; <?php _e('View'); ?> <?php echo date('F j, Y', $prev_date); ?></a></div>
 			<?php endif; ?>
 			<div class="clear"><!-- --></div>
 		</div>
@@ -40,7 +40,7 @@
 										<?php foreach ($entry['metas'] as $meta) : ?>
 											<?php echo $meta['name']; ?>: <?php echo $meta['value']; ?><br />
 										<?php endforeach; ?>
-										<a href="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date; ?>/<?php echo $entry['sizes'][3]['id']; ?>.jpg" target="_blank">View original size</a>
+										<a href="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date; ?>/<?php echo $entry['sizes'][3]['id']; ?>.jpg" target="_blank"><?php _e('View original size'); ?></a>
 									</div>
 								</div>
 								<br />

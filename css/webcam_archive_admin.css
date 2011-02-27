@@ -1,0 +1,8 @@
+#webcam_archive .slug {
+	padding: 0 10px;
+	text-align: right;
+	white-space: nowrap;
+}
+#webcam_archive .number {
+	text-align: center;
+}

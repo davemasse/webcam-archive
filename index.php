@@ -173,6 +173,11 @@
 		function install() {
 			global $wpdb;
 			
+			$plugin_path = '/' . str_replace(ABSPATH, '', dirname(__FILE__));
+			
+			wp_register_style('webcam_archive_admin.css', $plugin_path . '/css/webcam_archive_admin.css');
+			wp_enqueue_style('webcam_archive_admin.css');
+			
 			// Get current plugin schema version
 			$installed_version = get_option(self::db_version_key);
 			

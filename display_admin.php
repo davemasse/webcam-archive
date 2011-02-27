@@ -4,18 +4,18 @@
 		die();
 ?>
 
-<div class="wrap webcam-archive">
+<div id="webcam_archive" class="wrap webcam-archive">
 	<h2><?php _e('Webcam Archive'); ?></h2>
 	
 	<form action="" method="post">
-		<h3>Set image sizes</h3>
+		<h3><?php _e('Set image sizes'); ?></h3>
 		
 		<table>
 			<thead>
 				<tr>
-					<th>Delete?</th>
-					<th>Width</th>
-					<th>Height</th>
+					<th><?php _e('Delete?'); ?></th>
+					<th><?php _e('Width'); ?></th>
+					<th><?php _e('Height'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -28,7 +28,7 @@
 								<?php
 							}
 						?></td>
-						<td align="center"><?php
+						<td class="number"><?php
 							if ($size->width == 0 && $size->height == 0) {
 								echo __('original');
 							} elseif ($size->width == 0) {
@@ -37,7 +37,7 @@
 								echo $size->width;
 							}
 						?></td>
-						<td align="center"><?php
+						<td class="number"><?php
 							if ($size->height == 0 && $size->width == 0) {
 								echo __('original');
 							} elseif ($size->height == 0) {
@@ -50,47 +50,47 @@
 				<?php endforeach; ?>
 				<tr>
 					<td>&nbsp;</td>
-					<td align="center"><input type="text" name="param[0][width]" size="10" /></td>
-					<td align="center"><input type="text" name="param[0][height]" size="10" /></td>
+					<td class="number"><input type="text" name="param[0][width]" size="10" /></td>
+					<td class="number"><input type="text" name="param[0][height]" size="10" /></td>
 				</tr>
 			</tbody>
 		</table>
 		
-		<h3>Define meta information fields (optional)</h3>
+		<h3><?php _e('Define meta information fields (optional)'); ?></h3>
 		
 		<table>
 			<thead>
 				<tr>
-					<th>Delete?</th>
-					<th width="100">Short Name</th>
-					<th>Name</th>
-					<th>Sort Order</th>
+					<th><?php _e('Delete?'); ?></th>
+					<th width="100"><?php _e('Short Name'); ?></th>
+					<th><?php _e('Name'); ?></th>
+					<th><?php _e('Sort Order'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php foreach ($metas as $meta) : ?>
 					<tr>
 						<td><input type="checkbox" name="meta[<?php echo $meta->id; ?>][delete]" value="1" /></td>
-						<td style="padding: 0 10px; text-align: right; white-space: nowrap;"><?php echo $meta->slug; ?></td>
-						<td align="center"><input type="text" name="meta[<?php echo $meta->id; ?>][name]" value="<?php echo htmlentities($meta->name); ?>" size="30" /></td>
-						<td align="center"><input type="text" name="meta[<?php echo $meta->id; ?>][sort]" value="<?php echo $meta->sort; ?>" size="10" /></td>
+						<td class="slug"><?php echo $meta->slug; ?></td>
+						<td class="number"><input type="text" name="meta[<?php echo $meta->id; ?>][name]" value="<?php echo htmlentities($meta->name); ?>" size="30" /></td>
+						<td class="number"><input type="text" name="meta[<?php echo $meta->id; ?>][sort]" value="<?php echo $meta->sort; ?>" size="10" /></td>
 					</tr>
 				<?php endforeach; ?>
 				<tr>
 					<td>&nbsp;</td>
 					<td>&nbsp;</td>
-					<td align="center"><input type="text" name="meta[0][name]" size="30" /></td>
-					<td align="center"><input type="text" name="meta[0][sort]" size="10" /></td>
+					<td class="number"><input type="text" name="meta[0][name]" size="30" /></td>
+					<td class="number"><input type="text" name="meta[0][sort]" size="10" /></td>
 				</tr>
 			</tbody>
 		</table>
 		
-		<h3>Require login?</h3>
+		<h3><?php _e('Require login?'); ?></h3>
 		
-		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> Require login in order to view webcam pages and images?</label> (Using nginx? See the help tab for details.)</p>
+		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> <?php _e('Require login in order to view webcam pages and images?'); ?></label> <?php _e('(Using nginx? See the help tab for details.)'); ?></p>
 		
-		<p><label for="use_css"><input type="checkbox" name="use_css" id="use_css" value="1" <?php echo ($use_css ? 'checked="checked"' : ''); ?> /> Use the CSS provided with this plugin?</label></p>
+		<p><label for="use_css"><input type="checkbox" name="use_css" id="use_css" value="1" <?php echo ($use_css ? 'checked="checked"' : ''); ?> /> <?php _e('Use the CSS provided with this plugin?'); ?></label></p>
 		
-		<p><input type="submit" value="Save" /></p>
+		<p><input type="submit" value="<?php _e('Save'); ?>" /></p>
 	</form>
 </div>
