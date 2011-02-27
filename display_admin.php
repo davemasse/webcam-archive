@@ -87,7 +87,7 @@
 		
 		<h3>Require login?</h3>
 		
-		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> Require login in order to view webcam pages and images?</label></p>
+		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> Require login in order to view webcam pages and images?</label> (Using nginx? See the help tab for details.)</p>
 		
 		<p><label for="use_css"><input type="checkbox" name="use_css" id="use_css" value="1" <?php echo ($use_css ? 'checked="checked"' : ''); ?> /> Use the CSS provided with this plugin?</label></p>
 		

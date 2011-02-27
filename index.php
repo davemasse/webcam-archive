@@ -168,10 +168,6 @@
 		const upload_dir = 'webcam';
 		// Config name to store whether plugin's own CSS should be used
 		const use_css = 'webcam_archive_use_css';
-		// Admin help text
-		const help_text = <<<EOF
-			<p>TODO: Help text.</p>
-EOF;
 		
 		// Set up plugin requirements
 		function install() {
@@ -269,7 +265,7 @@ EOF;
 		function admin_menu() {
 			add_menu_page(__('Webcam Archive'), __('Webcam Archive'), self::capability, __FILE__);
 			$hook = add_submenu_page(__FILE__, __('Settings'), __('Settings'), self::capability, __FILE__, array('WebcamArchiveAdmin', 'display_admin'));
-			add_contextual_help($hook, self::help_text);
+			add_contextual_help($hook, self::generate_help());
 		}
 		
 		// Display the WordPress admin pages
@@ -593,6 +589,26 @@ EOF;
 					$counter++;
 				}
 			}
+		}
+		
+		function generate_help() {
+			$upload_dir = wp_upload_dir();
+			$upload_dir = $upload_dir['basedir'];
+			$upload_dir = str_replace(ABSPATH, '', $upload_dir);
+			
+			$help_text .= '
+				<h3>nginx login code</h3>
+				
+				<p>Add the following to your nginx site configuration:</p>
+				
+				<code>
+					if ($request_uri ~ "^/?' . $upload_dir . '/' . self::upload_dir . '/") {<br />
+					&nbsp;&nbsp;rewrite ^(.*)$ /index.php?' . self::filename_key . '=$1 last;<br />
+					}
+				</code>
+			';
+			
+			return $help_text;
 		}
 	}
 	
