@@ -8,7 +8,7 @@
 	<?php if ($entry_date == null) : ?>
 		<p><?php _e('No webcam photos could be found for the specified date.'); ?></p>
 	<?php else : ?>
-		<h2><?php echo date('F j, Y', key($entry_array)); ?></h2>
+		<h2><?php echo date('F j, Y', key($entry_array)); ?><input type="text" class="datepicker" /></h2>
 		
 		<div class="nav">
 			<?php if ($next_date) : ?>

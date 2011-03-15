@@ -4,7 +4,7 @@
 	 * Plugin URI: https://www.github.com/davemasse/webcam-archive/
 	 * Description: A WordPress plugin for managing and displaying an archive of webcam photos.
 	 * Author: Dave Masse
-	 * Version: 0.1
+	 * Version: 0.2
 	 * Author URI: http://www.rudemoose.com/
 	 */
 	
@@ -21,6 +21,7 @@
 			
 			$wp_xmlrpc_server = new wp_xmlrpc_server;
 			
+			// Values allowed in XML-RPC request
 			$blog_id = $args[0];
 			$username = $args[1];
 			$password = $args[2];
@@ -38,10 +39,12 @@
 			// Generate filename for temp image
 			$filename = get_class() . time() . '.jpg';
 			
+			// Write out image file
 			$file = fopen($upload_path . '/' . $filename, 'wb');
 			fwrite($file, base64_decode($image));
 			fclose($file);
 			
+			// Add new archive entry
 			$wpdb->query($wpdb->prepare("
 				INSERT INTO
 					" . $wpdb->prefix . "webcam_archive
@@ -51,8 +54,10 @@
 			", $timestamp));
 			$entry_id = $wpdb->insert_id;
 			
+			// Handle meta data
 			if (is_array($meta)) {
 				foreach ($meta as $key => $value) {
+					// Only handle data for pre-defined keys
 					if ($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . $wpdb->prefix . "webcam_archive_meta WHERE slug = '%s'", $key)) == 1) {
 						$wpdb->query($wpdb->prepare("
 							INSERT INTO
@@ -185,8 +190,10 @@
 			if ($installed_version === false)
 				$installed_version = 0;
 			
-			// Always pass through table structure adjustments if the installed
-			// database version is lower than the current plugin version
+			/*
+			 * Always pass through table structure adjustments if the installed
+			 * database version is lower than the current plugin version.
+			 */
 			if ($installed_version < self::db_version) {
 				// Include supporting code since a database update is needed
 				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -199,10 +206,13 @@
 					);";
 				dbDelta($sql);
 				
-				// Photo sizes
-				// These cannot be redefined since older photos may have already been
-				// created with these dimensions. Instead, a 'deleted' flag will be
-				// set and used to determine which sizes are available for new photos.
+				/*
+				 * Photo sizes
+				 *
+				 * These cannot be redefined since older photos may have already been
+				 * created with these dimensions. Instead, a 'deleted' flag will be
+				 * set and used to determine which sizes are available for new photos.
+				 */
 				$sql = "CREATE TABLE " . $wpdb->prefix . "webcam_archive_size (
 						id INT(11) NOT NULL AUTO_INCREMENT,
 						width INT(11) NOT NULL,
@@ -318,6 +328,7 @@
 				foreach ($metas as $key => $val) {
 					// New meta field
 					if ($key == 0) {
+						// Skip empty fields
 						if (strlen($val['name']) == 0) {
 							continue;
 						}
@@ -343,6 +354,7 @@
 					}
 				}
 				
+				// Add 'login required' rewrite rules
 				if (isset($_POST['require_login'])) {
 					update_option(self::require_login, true);
 					
@@ -360,6 +372,7 @@
 					);
 					
 					insert_with_markers(ABSPATH . '.htaccess', self::marker_key, $rewrite_array);
+				// Remove rewrite rules
 				} elseif (count(extract_from_markers(ABSPATH . '.htaccess', self::marker_key)) > 0) {
 					update_option(self::require_login, false);
 					
@@ -422,22 +435,31 @@
 			$plugin_path = '/' . str_replace(ABSPATH, '', dirname(__FILE__));
 			
 			// Register JavaScript
+			wp_register_script('jquery-ui.custom.min.js', $plugin_path . '/js/jquery-ui-1.8.10.custom.min.js', array('jquery'));
 			wp_register_script('tooltip.dynamic.min.js', $plugin_path . '/js/tooltip.dynamic.min.js', array('jquery'));
 			wp_register_script('jquery.lightbox.min.js', $plugin_path . '/js/jquery-lightbox/js/jquery.lightbox-0.5.min.js', array('jquery'));
 			wp_register_script('webcam_archive.js', $plugin_path . '/js/webcam_archive.js', array('tooltip.dynamic.min.js'));
 			
 			// Enqueue JavaScript
+			wp_enqueue_script('jquery-ui.custom.min.js');
 			wp_enqueue_script('tooltip.dynamic.min.js');
 			wp_enqueue_script('jquery.lightbox.min.js');
 			wp_enqueue_script('webcam_archive.js');
 			
+			// Register CSS
+			wp_register_style('jquery-ui.custom.css', $plugin_path . '/css/jquery-ui-1.8.10.custom.css');
 			wp_register_style('jquery.lightbox.css', $plugin_path . '/js/jquery-lightbox/css/jquery.lightbox-0.5.css');
+			
+			// Enqueue CSS
+			wp_enqueue_style('jquery-ui.custom.css');
 			wp_enqueue_style('jquery.lightbox.css');
 			
 			// Add plugin CSS, if requested
 			if (get_option(self::use_css) == true) {
+				// Register webcam CSS
 				wp_register_style('webcam_archive.css', $plugin_path . '/css/webcam_archive.css');
 				
+				// Enqueue webcam CSS
 				wp_enqueue_style('webcam_archive.css');
 			}
 		}
@@ -455,6 +477,7 @@
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
 			
+			// Handle provided date
 			if (isset($_GET['date'])) {
 				$entry_date = $wpdb->get_var($wpdb->prepare("
 					SELECT
@@ -464,6 +487,7 @@
 					WHERE
 						STR_TO_DATE(entry_date, '%%Y-%%c-%%e') = STR_TO_DATE('%s', '%%Y-%%c-%%e')
 				", $_GET['date']));
+			// Get latest date
 			} else {
 				$entry_date = $wpdb->get_var("
 					SELECT
@@ -476,6 +500,7 @@
 				");
 			}
 			
+			// Get all images for the given date
 			if ($entry_date != null) {
 				$sizes = $wpdb->get_results($wpdb->prepare("
 					SELECT
@@ -497,6 +522,7 @@
 						IF (was.height = 0, 1000000, was.height) ASC
 				", $gmt_offset, $entry_date));
 				
+				// Get all meta data for the given date
 				$metas = $wpdb->get_results($wpdb->prepare("
 					SELECT
 						(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
@@ -512,6 +538,7 @@
 						entry_date ASC
 				", $gmt_offset, $entry_date));
 				
+				// Build PHP array of image sizes for easier front end display
 				foreach ($sizes as $size) {
 					$size_array = array(
 						'id' => $size->id,
@@ -521,8 +548,10 @@
 					$entry_array[$size->entry_date]['sizes'][] = $size_array;
 				}
 				
+				// Free some memory
 				unset($sizes);
 				
+				// Build PHP array of meta data for easier front end display
 				foreach ($metas as $meta) {
 					$meta_array = array(
 						'name' => $meta->name,
@@ -531,6 +560,7 @@
 					$entry_array[$meta->entry_date]['metas'][] = $meta_array;
 				}
 				
+				// Free some memory
 				unset($metas);
 			}
 			
@@ -547,6 +577,7 @@
 				LIMIT 1
 			", $gmt_offset, $entry_date));
 			
+			// Get next day
 			$next_date = $wpdb->get_var($wpdb->prepare("
 				SELECT
 					(UNIX_TIMESTAMP(entry_date) + %d) AS entry_date
@@ -575,12 +606,14 @@
 					$image = $_GET[self::filename_key];
 					
 					if (file_exists(ABSPATH . $image)) {
+						// Output for image file
 						header('Content-Disposition: inline; filename=' . basename($image) . ';');
 						header('Content-Type: image/jpeg');
 						header('Content-Transfer-Encoding: binary');
 						header('Content-Length: ' . filesize(ABSPATH . $image));
 						readfile(ABSPATH . $image);
 						
+						// Override any preset status codes
 						$wp_query->is_404 = false;
 						status_header(200);
 						
@@ -621,6 +654,7 @@
 			}
 		}
 		
+		// Generate plugin help text
 		function generate_help() {
 			$upload_dir = wp_upload_dir();
 			$upload_dir = $upload_dir['basedir'];
