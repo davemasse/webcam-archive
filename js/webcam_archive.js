@@ -11,7 +11,8 @@ webcam_archive = {
 		jQuery('#webcam_archive .thumb').tooltip({
 			offset: [0, 0],
 			delay: 100,
-			position: 'bottom center'
+			position: 'bottom center',
+			relative: true
 		});
 
 		// Add lightbox to display larger image
