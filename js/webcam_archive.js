@@ -1,3 +1,9 @@
+/*
+ * Copyright 2011, Dave Masse
+ * GPL v2.0
+ * http://www.gnu.org/licenses/gpl-2.0.txt
+ */
+
 webcam_archive = {
 	'root': '',
 	'lightbox_root': '',

@@ -1,4 +1,10 @@
 <?php
+	/*
+	 * Copyright 2011, Dave Masse
+	 * GPL v2.0
+	 * http://www.gnu.org/licenses/gpl-2.0.txt
+	 */
+	
 	// Don't allow direct access
 	if ($_SERVER['SCRIPT_FILENAME'] == __FILE__)
 		die();

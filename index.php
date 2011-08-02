@@ -6,6 +6,10 @@
 	 * Author: Dave Masse
 	 * Version: 0.2
 	 * Author URI: http://www.rudemoose.com/
+	 *
+	 * Copyright 2011, Dave Masse
+	 * GPL v2.0
+	 * http://www.gnu.org/licenses/gpl-2.0.txt
 	 */
 	
 	// Disable direct file access
