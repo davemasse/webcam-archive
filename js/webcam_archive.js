@@ -5,9 +5,39 @@
  */
 
 webcam_archive = {
-	'root': '',
-	'lightbox_root': '',
-	'ready': function() {
+	root: '',
+	lightbox_root: '',
+	dates: [],
+	getDates: function(year, month) {
+		var data, url;
+		
+		// Format year and month according to how PHP will expect them
+		year = year.toString();
+		month = month.toString();
+		if (month.length == 1) {
+			month = '0' + month;
+		}
+		
+		// Build data structure
+		data = {
+			year: year,
+			month: month
+		};
+		
+		jQuery.ajax({
+			type: 'GET',
+			url: this.root + 'ajax.php',
+			data: data,
+			success: function(data, textStatus, jqXHR) {
+				webcam_archive.dates = data;
+			},
+			dataType: 'json',
+			async: false
+		});
+	},
+	ready: function() {
+		var currentDate, month, year;
+		
 		this.root = jQuery('script[src*="webcam_archive.js"]').attr('src').replace(/js\/webcam_archive\.js.*/, '');
 		
 		// Hacky method to get webcam archive lightbox root dynamically using JavaScript
@@ -33,8 +63,44 @@ webcam_archive = {
 		jQuery('#webcam_archive .datepicker').datepicker({
 			buttonImage: this.root + 'images/calendar.png',
 			buttonImageOnly: true,
-			dateFormat: 'yy-mm-dd'
+			dateFormat: 'yy-mm-dd',
+			showOn: 'button',
+			beforeShowDay: function(date) {
+				var fullDate, showDay, year, month, day;
+				
+				year = date.getFullYear();
+				month = (date.getMonth() + 1).toString();
+				if (month.length == 1) {
+					month = '0' + month;
+				}
+				day = date.getDate().toString();
+				if (day.length == 1) {
+					day = '0' + day;
+				}
+				fullDate = year + '-' + month + '-' + day;
+				
+				if (jQuery.inArray(fullDate, webcam_archive.dates) >= 0) {
+					showDay = Array(true, 'hasEntry', '');
+				} else {
+					showDay = Array(false, '', '');
+				}
+				
+				return showDay;
+			},
+			onChangeMonthYear: function(year, month, inst) {
+				webcam_archive.getDates(year, month);
+			},
+			onSelect: function(dateText, inst) {
+				jQuery('#datepicker').parents('form:first').submit();
+			}
 		});
+		
+		jQuery('#datepicker').hide();
+		
+		currentDate = new Date(jQuery('#datepicker').val());
+		year = currentDate.getFullYear();
+		month = currentDate.getMonth() + 1;
+		webcam_archive.getDates(year, month);
 	}
 }
 

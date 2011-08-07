@@ -450,6 +450,8 @@
 			wp_enqueue_script('jquery.lightbox.min.js');
 			wp_enqueue_script('webcam_archive.js');
 			
+			wp_localize_script('webcam_archive.js', 'WebcamArchive', array('ajaxurl' => admin_url('admin-ajax.php')));
+			
 			// Register CSS
 			wp_register_style('jquery-ui.custom.css', $plugin_path . '/css/jquery-ui-1.8.10.custom.css');
 			wp_register_style('jquery.lightbox.css', $plugin_path . '/js/jquery-lightbox/css/jquery.lightbox-0.5.css');
@@ -596,6 +598,17 @@
 			
 			ob_start();
 			
+			// Ugly hack to get current URL without date
+			$dateless_url = $_SERVER['SCRIPT_NAME'];
+			$get = $_GET;
+			unset($get['date']);
+			$temp_array = array();
+			foreach ($get as $k => $v) {
+				$temp_array[$k] = $k . '=' . $v;
+			}
+			$dateless_url .= '?' . implode('&amp;', $temp_array);
+			unset($temp_array);
+			
 			include 'display_frontend.php';
 			
 			return ob_get_clean();
@@ -678,6 +691,37 @@
 			
 			return $help_text;
 		}
+		
+		
+		function get_dates() {
+			global $wpdb;
+			
+			$year = (int)$_POST['year'];
+			$month = (int)$_POST['month'];
+			
+			if (!is_int($month) || !($month >= 1 && $month <= 12)) {
+				die(json_encode(array()));
+			}
+			
+			$rows = $wpdb->get_results($wpdb->prepare("
+				SELECT
+					wa.entry_date
+				FROM
+					" . $wpdb->prefix . "webcam_archive wa
+				WHERE
+					MONTH(entry_date) = %s
+					AND YEAR(entry_date) = %s
+				ORDER BY
+					entry_date ASC
+			", (int)$month, (int)$year));
+			
+			$dates = array();
+			foreach ($rows as $row) {
+				$dates[] = date('n/j/Y', strtotime($row->entry_date));
+			}
+			
+			die(json_encode($dates));
+		}
 	}
 	
 	// Run install on every load in case the database needs to be updated (quick version check)
@@ -694,4 +738,7 @@
 	
 	// Shortcode to put menu in pages and posts
 	add_shortcode(WebcamArchiveAdmin::shortcode_tag, array('WebcamArchiveAdmin', 'handle_shortcode'));
+		
+	// AJAX to get active menu dates
+	add_action('wp_ajax_webcam_archive_get_dates', array('WebcamArchive', 'get_dates'));
 ?>

@@ -14,14 +14,20 @@
 	<?php if ($entry_date == null) : ?>
 		<p><?php _e('No webcam photos could be found for the specified date.'); ?></p>
 	<?php else : ?>
-		<h2><?php echo date('F j, Y', key($entry_array)); ?><input type="text" class="datepicker" /></h2>
+		<h2><?php echo date('F j, Y', key($entry_array)); ?><form action="http://<?php echo $_SERVER['SERVER_NAME']; ?><?php echo $_SERVER['SCRIPT_NAME']; ?>" method="get"><input type="text" id="datepicker" class="datepicker" name="date" value="<?php echo date('Y-m-d', key($entry_array)); ?>" />
+				<?php foreach ($get as $k => $v): ?>
+					<input type="hidden" name="<?php echo $k; ?>" value="<?php echo $v; ?>" />
+				<?php endforeach; ?>
+				<input type="submit" class="submit" />
+			</form>
+		</h2>
 		
 		<div class="nav">
 			<?php if ($next_date) : ?>
-				<div class="next"><a href="?date=<?php echo date('Y-m-d', $next_date); ?>"><?php _e('View'); ?> <?php echo date('F j, Y', $next_date); ?> &raquo;</a></div>
+				<div class="next"><a href="<?php echo $dateless_url; ?>&date=<?php echo date('Y-m-d', $next_date); ?>"><?php _e('View'); ?> <?php echo date('F j, Y', $next_date); ?> &raquo;</a></div>
 			<?php endif; ?>
 			<?php if ($prev_date) : ?>
-				<div class="prev"><a href="?date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; <?php _e('View'); ?> <?php echo date('F j, Y', $prev_date); ?></a></div>
+				<div class="prev"><a href="<?php echo $dateless_url; ?>&date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; <?php _e('View'); ?> <?php echo date('F j, Y', $prev_date); ?></a></div>
 			<?php endif; ?>
 			<div class="clear"><!-- --></div>
 		</div>

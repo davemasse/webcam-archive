@@ -4,6 +4,12 @@
  * http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
+#webcam_archive form {
+	display: inline;
+}
+#webcam_archive form input.submit {
+	display: none;
+}
 #webcam_archive .image {
 	float: left;
 	margin-right: 20px;
@@ -42,4 +48,16 @@
 }
 #webcam_archive .clear {
 	clear: both;
+}
+#webcam_archive .ui-datepicker-trigger {
+	margin-left: 10px;
+	cursor: pointer;
+}
+.ui-datepicker-calendar .hasEntry a {
+	background: #eb8f00;
+	color: #fff;
+}
+.ui-datepicker-calendar .ui-datepicker-current-day a {
+	background: #1c94c4;
+	color: #fff;
 }
