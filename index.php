@@ -432,7 +432,15 @@
 		}
 		
 		// Load header text
-		function init() {
+		function wp() {
+			global $post;
+			
+			// Only output plugin CSS and JS if the shortcode is present
+			preg_match( '/'. get_shortcode_regex() .'/s', $post->post_content, $matches);
+			if (!(is_array($matches) && array_key_exists(2, $matches) && $matches[2] == self::shortcode_tag)) {
+				return;
+			}
+			
 			$upload_dir = wp_upload_dir();
 			$upload_dir = $upload_dir['baseurl'];
 			
@@ -732,7 +740,7 @@
 	add_action('template_redirect', array('WebcamArchiveAdmin', 'template_redirect'));
 	
 	// Initialize JavaScript
-	add_action('init', array('WebcamArchiveAdmin', 'init'));
+	add_action('wp', array('WebcamArchiveAdmin', 'wp'));
 	
 	// Shortcode to put menu in pages and posts
 	add_shortcode(WebcamArchiveAdmin::shortcode_tag, array('WebcamArchiveAdmin', 'handle_shortcode'));
