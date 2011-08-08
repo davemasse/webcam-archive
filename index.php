@@ -450,8 +450,6 @@
 			wp_enqueue_script('jquery.lightbox.min.js');
 			wp_enqueue_script('webcam_archive.js');
 			
-			wp_localize_script('webcam_archive.js', 'WebcamArchive', array('ajaxurl' => admin_url('admin-ajax.php')));
-			
 			// Register CSS
 			wp_register_style('jquery-ui.custom.css', $plugin_path . '/css/jquery-ui-1.8.10.custom.css');
 			wp_register_style('jquery.lightbox.css', $plugin_path . '/js/jquery-lightbox/css/jquery.lightbox-0.5.css');
