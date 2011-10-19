@@ -489,6 +489,8 @@
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
 			
+			$entry_array = array();
+			
 			// Handle provided date
 			if (isset($_GET['date'])) {
 				$entry_date = $wpdb->get_var($wpdb->prepare("
@@ -550,8 +552,6 @@
 						entry_date ASC
 				", $gmt_offset, $entry_date));
 				
-				// Define initial empty array
-				$entry_array[$size->entry_date]['sizes'] = array();
 				// Build PHP array of image sizes for easier front end display
 				foreach ($sizes as $size) {
 					$size_array = array(
@@ -559,20 +559,32 @@
 						'width' => $size->width,
 						'height' => $size->height,
 					);
+					// Define initial empty array
+					if (!array_key_exists($size->entry_date, $entry_array)) {
+						$entry_array[$size->entry_date] = array();
+					}
+					if (!array_key_exists('sizes', $entry_array[$size->entry_date])) {
+						$entry_array[$size->entry_date]['sizes'] = array();
+					}
 					$entry_array[$size->entry_date]['sizes'][] = $size_array;
 				}
 				
 				// Free some memory
 				unset($sizes);
 				
-				// Define initial empty array
-				$entry_array[$meta->entry_date]['metas'] = array();
 				// Build PHP array of meta data for easier front end display
 				foreach ($metas as $meta) {
 					$meta_array = array(
 						'name' => $meta->name,
 						'value' => $meta->value,
 					);
+					// Define initial empty array
+					if (!array_key_exists($meta->entry_date, $entry_array)) {
+						$entry_array[$meta->entry_date] = array();
+					}
+					if (!array_key_exists('metas', $entry_array[$meta->entry_date])) {
+						$entry_array[$meta->entry_date]['metas'] = array();
+					}
 					$entry_array[$meta->entry_date]['metas'][] = $meta_array;
 				}
 				
