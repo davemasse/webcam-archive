@@ -633,7 +633,7 @@
 			
 			// Get first image source
 			$first_image = array_keys($entry_array);
-			$first_image_date = $first_image[0];
+			$first_image_date = $first_image[count($first_image) - 1];
 			$first_image = $entry_array[$first_image_date]['sizes'][1];
 			
 			include 'display_frontend.php';
