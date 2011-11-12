@@ -4,6 +4,18 @@
  * http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
+#webcam_archive #latest {
+	margin-bottom: 1em;
+}
+#webcam_archive #latest img {
+	border: 1px solid #999;
+	-moz-box-shadow: 0 0 10px; #333;
+	-webkit-box-shadow: 0 0 10px #333;
+	box-shadow: 0 0 10px #333;
+}
+#webcam_archive #latest p {
+	text-align: center;
+}
 #webcam_archive form {
 	display: inline;
 }
@@ -24,7 +36,7 @@
 	padding: 10px;
 	background: #fff;
 	border: 2px solid #999;
-	-moz-box-shadow: 4px 4px 5px #999;
+	-moz-box-shadow: 0 0 10px; #333;
 	-webkit-box-shadow: 0 0 10px #333;
 	box-shadow: 0 0 10px #333;
 }

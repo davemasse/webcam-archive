@@ -631,6 +631,11 @@
 			$dateless_url .= '?' . implode('&amp;', $temp_array);
 			unset($temp_array);
 			
+			// Get first image source
+			$first_image = array_keys($entry_array);
+			$first_image_date = $first_image[0];
+			$first_image = $entry_array[$first_image_date]['sizes'][1];
+			
 			include 'display_frontend.php';
 			
 			return ob_get_clean();

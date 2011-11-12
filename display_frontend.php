@@ -32,6 +32,11 @@
 			<div class="clear"><!-- --></div>
 		</div>
 		
+		<div id="latest" style="width: <?php echo $first_image['width']; ?>px">
+			<img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $first_image_date) . $first_image_date; ?>/<?php echo $first_image['id']; ?>.jpg" />
+			<p><?php echo date('n/j/Y \a\t g:i a', $first_image_date); ?></p>
+		</div>
+		
 		<?php foreach ($entry_array as $entry_date => $entry) : ?>
 			<div class="image">
 				<?php
