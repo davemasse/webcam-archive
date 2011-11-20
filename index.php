@@ -754,7 +754,7 @@
 				<h3>nginx embed code</h3>
 				
 				<code>
-					if ($request_uri ~ "^/?webcam-archive.jpg$") {<br />
+					if ($request_uri ~ "^/?webcam-archive.jpg\?id=\d+$") {<br />
 					&nbsp;&nbsp;rewrite .* /' . $script_dir . '/embed.php last;<br />
 					}
 				</code>
