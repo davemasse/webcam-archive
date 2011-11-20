@@ -159,12 +159,16 @@
 	add_filter('xmlrpc_methods', array('WebcamArchive', 'xmlrpc_methods'));
 	
 	class WebcamArchiveAdmin {
+		// Boolean to allow other sites to reference the latest image for embedding or not
+		const allow_embed = 'webcam_archive_allow_embed';
 		// Permission required in order to access admin pages
 		const capability = 'manage_options';
 		// Key for storing database schema version
 		const db_version_key = 'webcam_archive_version';
 		// Current version (bumped on updates)
 		const db_version = 0.11;
+		// User for bordering rewrites for embeds in the root .htaccess file
+		const embed_marker_key = 'WebcamArchiveEmbed';
 		// URL querystring variable that the requested image name will be put into
 		const filename_key = 'webcam_archive_filename';
 		// Used for bordering rewrites in the root .htaccess file
@@ -269,6 +273,9 @@
 					(0, 0, 1)
 				");
 			}
+			
+			// Add default value for whether the plugin should allow latest image embeds
+			add_option(self::allow_embed, false);
 			
 			// Add default value for whether the plugin should require a login
 			add_option(self::require_login, false);
@@ -384,6 +391,30 @@
 					insert_with_markers(ABSPATH . '.htaccess', self::marker_key, array());
 				}
 				
+				// Update embed option
+				if (isset($_POST['allow_embed'])) {
+					update_option(self::allow_embed, true);
+					
+					$script_dir = dirname(__FILE__);
+					$script_dir = str_replace(ABSPATH, '', $script_dir);
+					
+					$rewrite_array = array(
+						'<IfModule mod_rewrite.c>',
+						'RewriteEngine On',
+						'RewriteBase /',
+						'RewriteCond %{REQUEST_URI} ^/?webcam-archive.jpg',
+						'RewriteRule (.*) ' . $script_dir . '/embed.php [L]',
+						'</IfModule>'
+					);
+					
+					insert_with_markers(ABSPATH . '.htaccess', self::embed_marker_key, $rewrite_array);
+				} else {
+					update_option(self::allow_embed, false);
+					
+					// Remove webcam rewrite rules
+					insert_with_markers(ABSPATH . '.htaccess', self::embed_marker_key, array());
+				}
+				
 				// Update CSS option
 				if (isset($_POST['use_css'])) {
 					update_option(self::use_css, true);
@@ -425,6 +456,8 @@
 			");
 			
 			$require_login = get_option(self::require_login, false);
+			
+			$allow_embed = get_option(self::allow_embed, false);
 			
 			$use_css = get_option(self::use_css, false);
 			

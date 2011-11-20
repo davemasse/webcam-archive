@@ -22,6 +22,7 @@
 					<th><?php _e('Delete?'); ?></th>
 					<th><?php _e('Width'); ?></th>
 					<th><?php _e('Height'); ?></th>
+					<th><?php _e('ID (for embedding)'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -31,6 +32,10 @@
 							if ($size->permanent == false) {
 								?>
 									<input type="checkbox" name="param[<?php echo $size->id; ?>][delete]" value="1" />
+								<?php
+							} else {
+								?>
+									n/a
 								<?php
 							}
 						?></td>
@@ -52,6 +57,7 @@
 								echo $size->height;
 							}
 						?></td>
+						<td class="number"><?php echo $size->id; ?></td>
 					</tr>
 				<?php endforeach; ?>
 				<tr>
@@ -91,9 +97,11 @@
 			</tbody>
 		</table>
 		
-		<h3><?php _e('Require login?'); ?></h3>
+		<h3><?php _e('Plugin Options'); ?></h3>
 		
 		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> <?php _e('Require login in order to view webcam pages and images?'); ?></label> <?php _e('(Using nginx? See the help tab for details.)'); ?></p>
+		
+		<p><label for="allow_embed"><input type="checkbox" name="allow_embed" id="allow_embed" value="1" <?php echo ($allow_embed ? 'checked="checked"' : ''); ?> /> <?php echo _e('Allow embedding of the latest webcam image by other sites?'); ?></label></p>
 		
 		<p><label for="use_css"><input type="checkbox" name="use_css" id="use_css" value="1" <?php echo ($use_css ? 'checked="checked"' : ''); ?> /> <?php _e('Use the CSS provided with this plugin?'); ?></label></p>
 		
