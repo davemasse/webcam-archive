@@ -402,8 +402,8 @@
 						'<IfModule mod_rewrite.c>',
 						'RewriteEngine On',
 						'RewriteBase /',
-						'RewriteCond %{REQUEST_URI} ^/?webcam-archive.jpg',
-						'RewriteRule (.*) ' . $script_dir . '/embed.php [L]',
+						'RewriteCond %{REQUEST_URI} ^/?webcam-archive.jpg$',
+						'RewriteRule .* ' . $script_dir . '/embed.php [L]',
 						'</IfModule>'
 					);
 					
@@ -737,14 +737,25 @@
 			$upload_dir = $upload_dir['basedir'];
 			$upload_dir = str_replace(ABSPATH, '', $upload_dir);
 			
+			$script_dir = dirname(__FILE__);
+			$script_dir = str_replace(ABSPATH, '', $script_dir);
+			
 			$help_text .= '
-				<h3>nginx login code</h3>
+				<p>Add the following to your nginx site configuration to enable the following features:</p>
 				
-				<p>Add the following to your nginx site configuration:</p>
+				<h3>nginx login code</h3>
 				
 				<code>
 					if ($request_uri ~ "^/?' . $upload_dir . '/' . self::upload_dir . '/") {<br />
-					&nbsp;&nbsp;rewrite ^(.*)$ /index.php?' . self::filename_key . '=$1 last;<br />
+					&nbsp;&nbsp;rewrite (.*) /index.php?' . self::filename_key . '=$1 last;<br />
+					}
+				</code>
+				
+				<h3>nginx embed code</h3>
+				
+				<code>
+					if ($request_uri ~ "^/?webcam-archive.jpg$") {<br />
+					&nbsp;&nbsp;rewrite .* /' . $script_dir . '/embed.php last;<br />
 					}
 				</code>
 			';

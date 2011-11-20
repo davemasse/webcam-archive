@@ -101,7 +101,7 @@
 		
 		<p><label for="require_login"><input type="checkbox" name="require_login" id="require_login" value="1" <?php echo ($require_login ? 'checked="checked"' : ''); ?> /> <?php _e('Require login in order to view webcam pages and images?'); ?></label> <?php _e('(Using nginx? See the help tab for details.)'); ?></p>
 		
-		<p><label for="allow_embed"><input type="checkbox" name="allow_embed" id="allow_embed" value="1" <?php echo ($allow_embed ? 'checked="checked"' : ''); ?> /> <?php echo _e('Allow embedding of the latest webcam image by other sites?'); ?></label></p>
+		<p><label for="allow_embed"><input type="checkbox" name="allow_embed" id="allow_embed" value="1" <?php echo ($allow_embed ? 'checked="checked"' : ''); ?> /> <?php echo _e('Allow embedding of the latest webcam image by other sites? If enabled, let other sites embed your webcam image using ' . get_bloginfo('wpurl') . '/webcam-archive.jpg?id=N, where N is one of the size IDs listed above.'); ?></label></p>
 		
 		<p><label for="use_css"><input type="checkbox" name="use_css" id="use_css" value="1" <?php echo ($use_css ? 'checked="checked"' : ''); ?> /> <?php _e('Use the CSS provided with this plugin?'); ?></label></p>
 		
