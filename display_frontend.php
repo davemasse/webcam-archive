@@ -24,10 +24,10 @@
 		
 		<div class="nav">
 			<?php if ($next_date) : ?>
-				<div class="next"><a href="<?php echo $dateless_url; ?>&date=<?php echo date('Y-m-d', $next_date); ?>"><?php _e('View'); ?> <?php echo date('F j, Y', $next_date); ?> &raquo;</a></div>
+				<div class="next"><a href="<?php echo $dateless_url; ?><?php echo (strstr($dateless_url, '=') ? '&' : ''); ?>date=<?php echo date('Y-m-d', $next_date); ?>"><?php _e('View'); ?> <?php echo date('F j, Y', $next_date); ?> &raquo;</a></div>
 			<?php endif; ?>
 			<?php if ($prev_date) : ?>
-				<div class="prev"><a href="<?php echo $dateless_url; ?>&date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; <?php _e('View'); ?> <?php echo date('F j, Y', $prev_date); ?></a></div>
+				<div class="prev"><a href="<?php echo $dateless_url; ?><?php echo (strstr($dateless_url, '=') ? '&' : ''); ?>date=<?php echo date('Y-m-d', $prev_date); ?>">&laquo; <?php _e('View'); ?> <?php echo date('F j, Y', $prev_date); ?></a></div>
 			<?php endif; ?>
 			<div class="clear"><!-- --></div>
 		</div>

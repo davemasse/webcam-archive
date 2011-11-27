@@ -654,7 +654,9 @@
 			ob_start();
 			
 			// Ugly hack to get current URL without date
-			$dateless_url = $_SERVER['SCRIPT_NAME'];
+			$dateless_url = $_SERVER['REQUEST_URI'];
+			$dateless_url = explode('?', $dateless_url);
+			$dateless_url = $dateless_url[0];
 			$get = $_GET;
 			unset($get['date']);
 			$temp_array = array();
