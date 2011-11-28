@@ -32,7 +32,7 @@
 			$image = $args[3];
 			$meta = $args[4];
 			
-			$timestamp = current_time('timestamp', true);
+			$timestamp = time() - (get_option('gmt_offset') * 3600);
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
