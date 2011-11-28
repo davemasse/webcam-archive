@@ -32,9 +32,8 @@
 			$image = $args[3];
 			$meta = $args[4];
 			
-			$blog_offset = get_option('gmt_offset') * 3600;
-			$system_offset = date('Z');
-			$timestamp = time() - $system_offset;
+			$timestamp_mysql = current_time('mysql', true);
+			$timestamp = strtotime($timestamp_mysql);
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
@@ -56,8 +55,8 @@
 					" . $wpdb->prefix . "webcam_archive
 				(entry_date)
 				VALUES
-				(FROM_UNIXTIME(%s))
-			", $timestamp));
+				(%s)
+			", $timestamp_mysql));
 			$entry_id = $wpdb->insert_id;
 			
 			// Handle meta data
@@ -520,7 +519,6 @@
 			global $wpdb;
 			
 			$blog_offset = get_option('gmt_offset') * 3600;
-			$system_offset = date('Z');
 			
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
@@ -555,7 +553,7 @@
 				$sizes = $wpdb->get_results($wpdb->prepare("
 					SELECT
 						wa.id,
-						(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
+						wa.entry_date AS entry_date,
 						was.id,
 						was.width,
 						was.height
@@ -570,12 +568,12 @@
 						entry_date ASC,
 						IF (was.width = 0, 1000000, was.width) ASC,
 						IF (was.height = 0, 1000000, was.height) ASC
-				", $system_offset, $entry_date));
+				", $entry_date));
 				
 				// Get all meta data for the given date
 				$metas = $wpdb->get_results($wpdb->prepare("
 					SELECT
-						(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
+						wa.entry_date AS entry_date,
 						wam.name,
 						wame.value
 					FROM
@@ -586,10 +584,13 @@
 						DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
 					ORDER BY
 						entry_date ASC
-				", $system_offset, $entry_date));
+				", $entry_date));
 				
 				// Build PHP array of image sizes for easier front end display
 				foreach ($sizes as $size) {
+					// Convert MySQL date to Epoch
+					$size->entry_date = strtotime($size->entry_date);
+					
 					$size_array = array(
 						'id' => $size->id,
 						'width' => $size->width,
@@ -610,6 +611,9 @@
 				
 				// Build PHP array of meta data for easier front end display
 				foreach ($metas as $meta) {
+					// Convert MySQL date to Epoch
+					$meta->entry_date = strtotime($meta->entry_date);
+					
 					$meta_array = array(
 						'name' => $meta->name,
 						'value' => $meta->value,
@@ -631,7 +635,7 @@
 			// Get previous day
 			$prev_date = $wpdb->get_var($wpdb->prepare("
 				SELECT
-					(UNIX_TIMESTAMP(entry_date) + %d) AS entry_date
+					entry_date AS entry_date
 				FROM
 					" . $wpdb->prefix . "webcam_archive
 				WHERE
@@ -639,12 +643,13 @@
 				ORDER BY
 					entry_date DESC
 				LIMIT 1
-			", $system_offset, $entry_date));
+			", $entry_date));
+			$prev_date = strtotime($prev_date);
 			
 			// Get next day
 			$next_date = $wpdb->get_var($wpdb->prepare("
 				SELECT
-					(UNIX_TIMESTAMP(entry_date) + %d) AS entry_date
+					entry_date AS entry_date
 				FROM
 					" . $wpdb->prefix . "webcam_archive
 				WHERE
@@ -652,7 +657,8 @@
 				ORDER BY
 					entry_date ASC
 				LIMIT 1
-			", $system_offset, $entry_date));
+			", $entry_date));
+			$next_date = strtotime($next_date);
 			
 			ob_start();
 			
@@ -672,6 +678,7 @@
 			// Get first image source
 			$first_image = array_keys($entry_array);
 			$first_image_date = $first_image[count($first_image) - 1];
+			$first_image_date = date('U', $first_image_date);
 			$first_image = $entry_array[$first_image_date]['sizes'][1];
 			
 			include 'display_frontend.php';
