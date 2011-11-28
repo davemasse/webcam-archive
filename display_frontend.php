@@ -14,7 +14,7 @@
 	<?php if ($entry_date == null) : ?>
 		<p><?php _e('No webcam photos could be found for the specified date.'); ?></p>
 	<?php else : ?>
-		<h2><?php echo date('F j, Y', key($entry_array)); ?><form action="http://<?php echo $_SERVER['SERVER_NAME']; ?><?php echo $_SERVER['SCRIPT_NAME']; ?>" method="get"><input type="text" id="datepicker" class="datepicker" name="date" value="<?php echo date('Y-m-d', key($entry_array)); ?>" />
+		<h2><?php echo date('F j, Y', $first_image_date + $gmt_offset); ?><form action="http://<?php echo $_SERVER['SERVER_NAME']; ?><?php echo $_SERVER['SCRIPT_NAME']; ?>" method="get"><input type="text" id="datepicker" class="datepicker" name="date" value="<?php echo date('Y-m-d', key($entry_array) + $gmt_offset); ?>" />
 				<?php foreach ($get as $k => $v): ?>
 					<input type="hidden" name="<?php echo $k; ?>" value="<?php echo $v; ?>" />
 				<?php endforeach; ?>
@@ -34,7 +34,7 @@
 		
 		<div id="latest">
 			<img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $first_image_date) . $first_image_date; ?>/<?php echo $first_image['id']; ?>.jpg" />
-			<p><?php echo date('n/j/Y \a\t g:i a', $first_image_date); ?></p>
+			<p><?php echo date('n/j/Y \a\t g:i a', $first_image_date + $gmt_offset); ?></p>
 		</div>
 		
 		<?php foreach ($entry_array as $entry_date => $entry) : ?>
@@ -44,15 +44,15 @@
 						if ($key == 0) {
 							?>
 								<div class="thumb">
-									<a href="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $entry['sizes'][2]['id']; ?>.jpg" data-title="<?php echo date('n/j/Y \a\t g:i a', $entry_date); ?><br /><?php foreach ($entry['metas'] as $meta) : ?><?php echo $meta['name']; ?>: <?php echo $meta['value']; ?><br /><?php endforeach; ?>"><img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $size['id']; ?>.jpg" width="<?php echo $size['width']; ?>" /></a><br />
-									<?php echo date('g:i a', $entry_date); ?>
+									<a href="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $entry['sizes'][2]['id']; ?>.jpg" data-title="<?php echo date('n/j/Y \a\t g:i a', $entry_date + $gmt_offset); ?><br /><?php foreach ($entry['metas'] as $meta) : ?><?php echo $meta['name']; ?>: <?php echo $meta['value']; ?><br /><?php endforeach; ?>"><img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date . '/' . $size['id']; ?>.jpg" width="<?php echo $size['width']; ?>" /></a><br />
+									<?php echo date('g:i a', $entry_date + $gmt_offset); ?>
 								</div>
 							<?php
 						} elseif ($key == 1) {
 							?>
 								<div class="tooltip">
 									<img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $entry_date) . $entry_date; ?>/<?php echo $size['id']; ?>.jpg" /><br />
-									<p><?php echo date('n/j/Y \a\t g:i a', $entry_date); ?></p>
+									<p><?php echo date('n/j/Y \a\t g:i a', $entry_date + $gmt_offset); ?></p>
 									<div class="meta">
 										<?php foreach ($entry['metas'] as $meta) : ?>
 											<?php echo $meta['name']; ?>: <?php echo $meta['value']; ?><br />
