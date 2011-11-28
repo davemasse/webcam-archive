@@ -32,7 +32,9 @@
 			$image = $args[3];
 			$meta = $args[4];
 			
-			$timestamp = time() - (get_option('gmt_offset') * 3600);
+			$blog_offset = get_option('gmt_offset') * 3600;
+			$system_offset = date('Z');
+			$timestamp = time() - $system_offset;
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
@@ -517,7 +519,8 @@
 			
 			global $wpdb;
 			
-			$gmt_offset = get_option( 'gmt_offset' ) * 3600;
+			$blog_offset = get_option('gmt_offset') * 3600;
+			$system_offset = date('Z');
 			
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
@@ -567,7 +570,7 @@
 						entry_date ASC,
 						IF (was.width = 0, 1000000, was.width) ASC,
 						IF (was.height = 0, 1000000, was.height) ASC
-				", $gmt_offset, $entry_date));
+				", $system_offset, $entry_date));
 				
 				// Get all meta data for the given date
 				$metas = $wpdb->get_results($wpdb->prepare("
@@ -583,7 +586,7 @@
 						DATE_FORMAT(entry_date, '%%Y%%m%%d') = '%s'
 					ORDER BY
 						entry_date ASC
-				", $gmt_offset, $entry_date));
+				", $system_offset, $entry_date));
 				
 				// Build PHP array of image sizes for easier front end display
 				foreach ($sizes as $size) {
@@ -636,7 +639,7 @@
 				ORDER BY
 					entry_date DESC
 				LIMIT 1
-			", $gmt_offset, $entry_date));
+			", $system_offset, $entry_date));
 			
 			// Get next day
 			$next_date = $wpdb->get_var($wpdb->prepare("
@@ -649,7 +652,7 @@
 				ORDER BY
 					entry_date ASC
 				LIMIT 1
-			", $gmt_offset, $entry_date));
+			", $system_offset, $entry_date));
 			
 			ob_start();
 			
