@@ -32,7 +32,7 @@
 			$image = $args[3];
 			$meta = $args[4];
 			
-			$timestamp = current_time('timestamp');
+			$timestamp = current_time('timestamp', true);
 			
 			if (!$wp_xmlrpc_server->login($username, $password))
 				return $wp_xmlrpc_server->error;
@@ -517,7 +517,7 @@
 			
 			global $wpdb;
 			
-			$gmt_offset = 0;
+			$gmt_offset = get_option( 'gmt_offset' ) * 3600;
 			
 			$upload_path = wp_upload_dir();
 			$upload_path = $upload_path['baseurl'];
