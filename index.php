@@ -774,44 +774,13 @@
 			
 			return $help_text;
 		}
-		
-		
-		function get_dates() {
-			global $wpdb;
-			
-			$year = (int)$_POST['year'];
-			$month = (int)$_POST['month'];
-			
-			if (!is_int($month) || !($month >= 1 && $month <= 12)) {
-				die(json_encode(array()));
-			}
-			
-			$rows = $wpdb->get_results($wpdb->prepare("
-				SELECT
-					wa.entry_date
-				FROM
-					" . $wpdb->prefix . "webcam_archive wa
-				WHERE
-					MONTH(entry_date) = %s
-					AND YEAR(entry_date) = %s
-				ORDER BY
-					entry_date ASC
-			", (int)$month, (int)$year));
-			
-			$dates = array();
-			foreach ($rows as $row) {
-				$dates[] = date('n/j/Y', strtotime($row->entry_date));
-			}
-			
-			die(json_encode($dates));
-		}
 	}
 	
 	// Run install on every load in case the database needs to be updated (quick version check)
 	add_action('admin_init', array('WebcamArchiveAdmin', 'install'));
 	
 	// Register admin menu
-	add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
+	//add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
 	
 	// Handle image redirect, if necessary
 	add_action('template_redirect', array('WebcamArchiveAdmin', 'template_redirect'));
@@ -821,7 +790,4 @@
 	
 	// Shortcode to put menu in pages and posts
 	add_shortcode(WebcamArchiveAdmin::shortcode_tag, array('WebcamArchiveAdmin', 'handle_shortcode'));
-		
-	// AJAX to get active menu dates
-	add_action('wp_ajax_webcam_archive_get_dates', array('WebcamArchive', 'get_dates'));
 ?>

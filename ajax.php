@@ -19,21 +19,23 @@
 	// Get all entry dates for this year and month
 	$rows = $wpdb->get_results($wpdb->prepare("
 		SELECT
-			DISTINCT DATE_FORMAT(entry_date, '%%Y-%%m-%%d') AS entry_date
+			DISTINCT entry_date
 		FROM
 			" . $wpdb->prefix . "webcam_archive
 		WHERE
 			YEAR(entry_date) = %s
 			AND MONTH(entry_date) = %s
-	", $archive_year, $archive_month));
+	", $archive_year, $archive_month));		
+	
+	$blog_offset = get_option('gmt_offset') * 3600;
 	
 	// Create a clean array of the available dates
 	$dates = array();
 	foreach ($rows as $row) {
-		$dates[] = $row->entry_date;
+		$dates[] = date('Y-n-j', strtotime($row->entry_date) + $blog_offset);
 	}
 	
 	// Set JSON header
-	header('Content-type: application/x-json');
-	echo json_encode($dates);
+	header('Content-type: application/json');
+	die(json_encode($dates));
 ?>
