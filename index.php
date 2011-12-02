@@ -780,7 +780,7 @@
 	add_action('admin_init', array('WebcamArchiveAdmin', 'install'));
 	
 	// Register admin menu
-	//add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
+	add_action('admin_menu', array('WebcamArchiveAdmin', 'admin_menu'));
 	
 	// Handle image redirect, if necessary
 	add_action('template_redirect', array('WebcamArchiveAdmin', 'template_redirect'));
