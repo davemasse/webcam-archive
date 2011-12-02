@@ -90,7 +90,7 @@
 			");
 			
 			// Create directory structure with intermediate directories, if necessary
-			$output_dir = $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', current_time('timestamp')) . $timestamp . '/';
+			$output_dir = $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $timestamp) . $timestamp . '/';
 			mkdir($output_dir, 0777, true);
 			
 			// Create image object from uploaded image
