@@ -37,7 +37,7 @@
 	// Get latest image info
 	$size = $wpdb->get_results($wpdb->prepare("
 		SELECT
-			(UNIX_TIMESTAMP(wa.entry_date) + %d) AS entry_date,
+			wa.entry_date AS entry_date,
 			was.id
 		FROM
 			" . $wpdb->prefix . "webcam_archive wa
@@ -49,13 +49,14 @@
 		ORDER BY
 			entry_date DESC
 		LIMIT 1
-	", $gmt_offset, $size_id));
+	", $size_id));
 	$size = $size[0];
 	
 	// Get full path to requested image file
 	$upload_path = wp_upload_dir();
 	$upload_path = $upload_path['basedir'];
-	$image = $upload_path . '/' . WebcamArchive::upload_dir . '/' . date('Y/m/d/', $size->entry_date) . '/' . $size->entry_date . '/' . $size->id . '.jpg';
+	$size->entry_date = strtotime($size->entry_date);
+	$image = $upload_path . '/' . WebcamArchive::upload_dir . '/' . date('Y/m/d', $size->entry_date) . '/' . $size->entry_date . '/' . $size->id . '.jpg';
 	
 	// Return image to browser
 	$imginfo = getimagesize($image);
