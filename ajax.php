@@ -19,7 +19,7 @@
 	// Get all entry dates for this year and month
 	$rows = $wpdb->get_results($wpdb->prepare("
 		SELECT
-			DISTINCT entry_date
+			entry_date
 		FROM
 			" . $wpdb->prefix . "webcam_archive
 		WHERE
@@ -32,8 +32,11 @@
 	// Create a clean array of the available dates
 	$dates = array();
 	foreach ($rows as $row) {
-		$dates[] = date('Y-n-j', strtotime($row->entry_date) + $blog_offset);
+		$dates[] = date('Y-m-d', strtotime($row->entry_date) + $blog_offset);
 	}
+	
+	// Remove duplicate values
+	$dates = array_values(array_unique($dates));
 	
 	// Set JSON header
 	header('Content-type: application/json');
