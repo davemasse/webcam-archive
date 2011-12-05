@@ -482,13 +482,13 @@
 			
 			// Register JavaScript
 			wp_register_script('jquery.ui.datepicker.closure.js', $plugin_path . '/js/jquery.ui.datepicker.closure.js', array('jquery', 'jquery-ui-core'));
-			wp_register_script('tooltip.dynamic.min.js', $plugin_path . '/js/tooltip.dynamic.min.js', array('jquery'));
+			wp_register_script('tooltip.dynamic.closure.js', $plugin_path . '/js/tooltip.dynamic.closure.js', array('jquery'));
 			wp_register_script('jquery.lightbox.min.js', $plugin_path . '/js/jquery-lightbox/js/jquery.lightbox-0.5.min.js', array('jquery'));
-			wp_register_script('webcam_archive.js', $plugin_path . '/js/webcam_archive.js', array('jquery', 'jquery-ui-core', 'tooltip.dynamic.min.js'));
+			wp_register_script('webcam_archive.js', $plugin_path . '/js/webcam_archive.js', array('jquery', 'jquery-ui-core', 'tooltip.dynamic.closure.js'));
 			
 			// Enqueue JavaScript
 			wp_enqueue_script('jquery.ui.datepicker.closure.js');
-			wp_enqueue_script('tooltip.dynamic.min.js');
+			wp_enqueue_script('tooltip.dynamic.closure.js');
 			wp_enqueue_script('jquery.lightbox.min.js');
 			wp_enqueue_script('webcam_archive.js');
 			

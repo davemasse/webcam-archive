@@ -43,14 +43,6 @@ webcam_archive = {
 		// Hacky method to get webcam archive lightbox root dynamically using JavaScript
 		this.lightbox_root = jQuery('script[src*="jquery.lightbox"]').attr('src').replace(/js\/jquery\.lightbox.*/, '');
 
-		// Add tooltip to thumbnail image
-		jQuery('#webcam_archive .thumb').tooltip({
-			offset: [0, 0],
-			delay: 100,
-			position: 'bottom center',
-			relative: true
-		});
-
 		// Add lightbox to display larger image
 		jQuery('#webcam_archive .thumb a').lightBox({
 			imageBlank: this.lightbox_root + 'images/lightbox-blank.gif',
@@ -58,6 +50,20 @@ webcam_archive = {
 			imageBtnClose: this.lightbox_root + 'images/lightbox-btn-close.gif',
 			imageBtnPrev: this.lightbox_root + 'images/lightbox-btn-prev.gif',
 			imageBtnNext: this.lightbox_root + 'images/lightbox-btn-next.gif'
+		});
+
+		// Add tooltip to thumbnail image
+		jQuery('#webcam_archive .thumb').tooltip({
+			offset: [0, 0],
+			delay: 100,
+			position: 'bottom center',
+			relative: true,
+			events: {
+				def: 'mouseover, mouseout',
+				input: 'focus, blur',
+				widget: 'focus mouseover, blur mouseout',
+				tooltip: 'mouseover, mouseout'
+			}
 		});
 		
 		jQuery('#webcam_archive .datepicker').datepicker({

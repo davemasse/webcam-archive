@@ -1,0 +1,19 @@
+/*
+
+ jQuery Tools @VERSION Tooltip - UI essentials
+
+ NO COPYRIGHTS OR LICENSES. DO WHAT YOU LIKE.
+
+ http://flowplayer.org/tools/tooltip/
+
+ Since: November 2008
+ Date: @DATE
+*/
+(function(e){function p(a,b,d){var f=d.relative?a.position().top:a.offset().top,c=d.relative?a.position().left:a.offset().left,h=d.position[0],f=f-(b.outerHeight()-d.offset[0]),c=c+(a.outerWidth()+d.offset[1]);/iPad/i.test(navigator.userAgent)&&(f-=e(window).scrollTop());var i=b.outerHeight()+a.outerHeight();"center"==h&&(f+=i/2);"bottom"==h&&(f+=i);h=d.position[1];a=b.outerWidth()+a.outerWidth();"center"==h&&(c-=a/2);"left"==h&&(c-=a);return{top:f,left:c}}function n(a,b){var d=this,f=a.add(d),c,
+h=0,i=0,m=a.attr("title"),q=a.attr("data-tooltip"),r=o[b.effect],l,s=a.is(":input"),n=s&&a.is(":checkbox, :radio, select, :button, :submit"),t=a.attr("type"),j=b.events[t]||b.events[s?n?"widget":"input":"def"];if(!r)throw'Nonexistent effect "'+b.effect+'"';j=j.split(/,\s*/);if(2!=j.length)throw"Tooltip: bad events configuration for "+t;a.bind(j[0],function(a){clearTimeout(h);b.predelay?i=setTimeout(function(){d.show(a)},b.predelay):d.show(a)}).bind(j[1],function(a){clearTimeout(i);b.delay?h=setTimeout(function(){d.hide(a)},
+b.delay):d.hide(a)});m&&b.cancelDefault&&(a.removeAttr("title"),a.data("title",m));e.extend(d,{show:function(k){if(!c&&(q?c=e(q):b.tip?c=e(b.tip).eq(0):m?c=e(b.layout).addClass(b.tipClass).appendTo(document.body).hide().append(m):(c=a.next(),c.length||(c=a.parent().next())),!c.length))throw"Cannot find tooltip for "+a;if(d.isShown())return d;c.stop(!0,!0);var g=p(a,c,b);b.tip&&c.html(a.data("title"));k=e.Event();k.type="onBeforeShow";f.trigger(k,[g]);if(k.isDefaultPrevented())return d;g=p(a,c,b);
+c.css({position:"absolute",top:g.top,left:g.left});l=!0;r[0].call(d,function(){k.type="onShow";l="full";f.trigger(k)});g=b.events.tooltip.split(/,\s*/);c.data("__set")||(c.unbind(g[0]).bind(g[0],function(){clearTimeout(h);clearTimeout(i)}),g[1]&&!a.is("input:not(:checkbox, :radio), textarea")&&c.unbind(g[1]).bind(g[1],function(b){b.relatedTarget!=a[0]&&a.trigger(j[1].split(" ")[0])}),b.tip||c.data("__set",!0));return d},hide:function(a){if(!c||!d.isShown())return d;a=e.Event();a.type="onBeforeHide";
+f.trigger(a);if(!a.isDefaultPrevented())return l=!1,o[b.effect][1].call(d,function(){a.type="onHide";f.trigger(a)}),d},isShown:function(a){return a?"full"==l:l},getConf:function(){return b},getTip:function(){return c},getTrigger:function(){return a}});e.each("onHide,onBeforeShow,onShow,onBeforeHide".split(","),function(a,c){e.isFunction(b[c])&&e(d).bind(c,b[c]);d[c]=function(a){a&&e(d).bind(c,a);return d}})}e.tools=e.tools||{version:"@VERSION"};e.tools.tooltip={conf:{effect:"toggle",fadeOutSpeed:"fast",
+predelay:0,delay:30,opacity:1,tip:0,fadeIE:!1,position:["top","center"],offset:[0,0],relative:!1,cancelDefault:!0,events:{def:"mouseenter,mouseleave",input:"focus,blur",widget:"focus mouseenter,blur mouseleave",tooltip:"mouseenter,mouseleave"},layout:"<div/>",tipClass:"tooltip"},addEffect:function(a,b,d){o[a]=[b,d]}};var o={toggle:[function(a){var b=this.getConf(),d=this.getTip(),b=b.opacity;1>b&&d.css({opacity:b});d.show();a.call()},function(a){this.getTip().hide();a.call()}],fade:[function(a){var b=
+this.getConf();!e.browser.msie||b.fadeIE?this.getTip().fadeTo(b.fadeInSpeed,b.opacity,a):(this.getTip().show(),a())},function(a){var b=this.getConf();!e.browser.msie||b.fadeIE?this.getTip().fadeOut(b.fadeOutSpeed,a):(this.getTip().hide(),a())}]};e.fn.tooltip=function(a){var b=this.data("tooltip");if(b)return b;a=e.extend(!0,{},e.tools.tooltip.conf,a);if("string"==typeof a.position)a.position=a.position.split(/,?\s/);this.each(function(){b=new n(e(this),a);e(this).data("tooltip",b)});return a.api?
+b:this}})(jQuery);
