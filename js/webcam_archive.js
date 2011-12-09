@@ -103,9 +103,9 @@ webcam_archive = {
 		
 		jQuery('#datepicker').hide();
 		
-		currentDate = new Date(jQuery('#datepicker').val());
-		year = currentDate.getFullYear();
-		month = currentDate.getMonth() + 1;
+		currentDate = jQuery('#datepicker').val().split('-');
+		year = currentDate[0];
+		month = currentDate[1];
 		webcam_archive.getDates(year, month);
 	}
 }
