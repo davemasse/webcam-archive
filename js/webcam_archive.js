@@ -56,7 +56,7 @@ webcam_archive = {
 		jQuery('#webcam_archive .thumb').tooltip({
 			offset: [0, 0],
 			delay: 100,
-			position: 'bottom center',
+			position: 'top center',
 			relative: true,
 			events: {
 				def: 'mouseover, mouseout',

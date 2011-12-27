@@ -28,6 +28,9 @@
 	margin-right: 20px;
 	text-align: center;
 }
+#webcam_archive .thumb {
+	padding-top: 5px;
+}
 #webcam_archive .thumb a {
 	display: block;
 }
