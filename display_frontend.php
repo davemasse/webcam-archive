@@ -14,7 +14,7 @@
 	<?php if ($entry_date == null) : ?>
 		<p><?php _e('No webcam photos could be found for the specified date.'); ?></p>
 	<?php else : ?>
-		<h2><?php echo date('F j, Y', $first_image_date + $blog_offset); ?><form action="<?php echo $dateless_url; ?>" method="get"><input type="text" id="datepicker" class="datepicker" name="date" value="<?php echo date('Y-m-d', key($entry_array) + $blog_offset); ?>" />
+		<h2><?php echo date('l, F j, Y', $first_image_date + $blog_offset); ?><form action="<?php echo $dateless_url; ?>" method="get"><input type="text" id="datepicker" class="datepicker" name="date" value="<?php echo date('Y-m-d', key($entry_array) + $blog_offset); ?>" />
 				<?php foreach ($get as $k => $v): ?>
 					<input type="hidden" name="<?php echo $k; ?>" value="<?php echo $v; ?>" />
 				<?php endforeach; ?>
