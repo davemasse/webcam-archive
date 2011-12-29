@@ -34,7 +34,7 @@
 		
 		<div id="latest">
 			<img src="<?php echo $upload_path . '/' . self::upload_dir . '/' . date('Y/m/d/', $first_image_date) . $first_image_date; ?>/<?php echo $first_image['id']; ?>.jpg" />
-			<p><?php echo date('n/j/Y \a\t g:i a', $first_image_date + $blog_offset); ?></p>
+			<p><?php _e('Latest image:'); ?> <?php echo date('g:i a', $first_image_date + $blog_offset); ?></p>
 		</div>
 		
 		<?php foreach ($entry_array as $entry_date => $entry) : ?>
